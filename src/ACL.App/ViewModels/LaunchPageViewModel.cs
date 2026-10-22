@@ -191,9 +191,15 @@ public partial class LaunchPageViewModel : PageViewModelBase
                 .RunAsync(request, null, sink)
                 .ConfigureAwait(true);
 
-            Status = result.IsSuccess
-                ? $"游戏已退出：{result.Value!.State}（{result.Value!.Reason}）"
-                : $"启动失败：{result.Code}";
+            if (result.IsSuccess)
+            {
+                _state.AddPlayMinutes(versionId, result.Value!.Duration.TotalMinutes);
+                Status = $"游戏已退出：{result.Value!.State}（{result.Value!.Reason}），本次 {result.Value!.Duration.TotalMinutes:F1} 分钟";
+            }
+            else
+            {
+                Status = $"启动失败：{result.Code}";
+            }
             Log.Add($"[launch] {Status}");
         }
         finally

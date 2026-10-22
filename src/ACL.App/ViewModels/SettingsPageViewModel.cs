@@ -69,6 +69,7 @@ public partial class SettingsPageViewModel : PageViewModelBase
             PlayerName = State.PlayerName,
             SelectedVersionId = State.SelectedVersionId,
             Theme = State.Theme,
+            PlayMinutes = new Dictionary<string, double>(State.PlayMinutes, StringComparer.Ordinal),
         };
 
         Result saved = _services.Settings.Save(settings);

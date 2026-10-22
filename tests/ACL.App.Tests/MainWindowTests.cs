@@ -21,12 +21,21 @@ public class MainWindowTests
     public void SelectingPage_UpdatesSelectionAndContent()
     {
         MainWindowViewModel vm = new();
+        NavItem download = vm.Pages.Single(page => page.Key == "download");
 
-        vm.Pages[1].Select!.Execute(vm.Pages[1]);
+        download.Select!.Execute(download);
 
         Assert.Equal("下载", vm.CurrentPage.Title);
-        Assert.True(vm.Pages[1].IsSelected);
+        Assert.True(download.IsSelected);
         Assert.False(vm.Pages[0].IsSelected);
+    }
+
+    [Fact]
+    public void Pages_ContainExpectedKeys()
+    {
+        MainWindowViewModel vm = new();
+
+        Assert.Equal(["launch", "games", "download", "resources", "settings", "more"], vm.Pages.Select(page => page.Key));
     }
 
     [Fact]

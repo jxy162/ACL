@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using ACL.App.Services;
+using ACL.Core.Modpack;
 using ACL.Core.Abstractions;
 using ACL.Core.Domain;
 using Avalonia.Threading;
@@ -37,6 +38,7 @@ public partial class MainWindowViewModel : ObservableObject
         Pages =
         [
             new NavItem("launch", "M4,2.5 L13.5,8 L4,13.5 Z", new LaunchPageViewModel(services, State)),
+            new NavItem("games", "M2.5,3 H6.5 V6 H2.5 Z M9.5,3 H13.5 V6 H9.5 Z M2.5,10 H6.5 V13 H2.5 Z M9.5,10 H13.5 V13 H9.5 Z", new GameListPageViewModel(services, State, StartVersion)),
             new NavItem("download", "M7.2,1.5 H8.8 V7 H11.5 L8,11.5 L4.5,7 H7.2 Z M2.5,12.6 H13.5 V14.4 H2.5 Z", new DownloadPageViewModel(services, State)),
             new NavItem("resources", "M2.5,2.5 H7.5 V7.5 H2.5 Z M8.5,2.5 H13.5 V7.5 H8.5 Z M2.5,8.5 H7.5 V13.5 H2.5 Z M8.5,8.5 H13.5 V13.5 H8.5 Z", new ResourcePageViewModel(services, State)),
             new NavItem("settings", "M2.5,3.6 H13.5 V5.4 H2.5 Z M2.5,7.1 H13.5 V8.9 H2.5 Z M2.5,10.6 H13.5 V12.4 H2.5 Z", new SettingsPageViewModel(services, State)),
@@ -61,7 +63,13 @@ public partial class MainWindowViewModel : ObservableObject
             State.PlayerName = loaded.Value!.PlayerName;
             _pendingVersionId = loaded.Value!.SelectedVersionId;
             State.Theme = loaded.Value!.Theme;
+            foreach (KeyValuePair<string, double> play in loaded.Value!.PlayMinutes)
+            {
+                State.PlayMinutes[play.Key] = play.Value;
+            }
         }
+
+        State.PlaytimeChanged += (_, _) => SaveSettingsOnExit();
 
         // 主题切换：立即应用到界面。
         App.ApplyTheme(State.Theme);
@@ -127,6 +135,11 @@ public partial class MainWindowViewModel : ObservableObject
                 download.ApplyFilter();
                 download.Status = VersionStatus;
             }
+
+            if (item.Page is GameListPageViewModel games)
+            {
+                games.ApplyFilter();
+            }
         }
     }
 
@@ -179,6 +192,59 @@ public partial class MainWindowViewModel : ObservableObject
         finally
         {
             State.IsAuthenticating = false;
+        }
+    }
+
+    /// <summary>整合包导入状态（拖入文件后显示）。</summary>
+    [ObservableProperty]
+    private string _importStatus = string.Empty;
+
+    /// <summary>选中版本并回到启动页生成计划。</summary>
+    public void StartVersion(VersionRowViewModel row)
+    {
+        State.SelectedVersion = row;
+        SelectPage(Pages[0]);
+        if (Pages[0].Page is LaunchPageViewModel launch)
+        {
+            IsFullscreen = false;
+            launch.PlanCommand.Execute(null);
+        }
+    }
+
+    /// <summary>导入整合包（拖入 .mrpack / .zip）。</summary>
+    [RelayCommand]
+    public async Task ImportModpackAsync(string? path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
+
+        ImportStatus = $"正在解析整合包：{Path.GetFileName(path)}…";
+        Result<ModpackManifest> parsed = _services.Modpack.Parse(path);
+        if (!parsed.IsSuccess)
+        {
+            ImportStatus = $"解析失败：{parsed.Code}（{parsed.Detail}）";
+            return;
+        }
+
+        ModpackManifest manifest = parsed.Value!;
+        ImportStatus = $"{manifest.Name}（{manifest.Format}）：Minecraft {manifest.MinecraftVersion}，文件 {manifest.Files.Count} 个，开始安装…";
+
+        Result<ModpackInstallResult> installed = await _services.Modpack
+            .InstallAsync(manifest, path, _services.GameDirectory)
+            .ConfigureAwait(true);
+
+        ImportStatus = installed.IsSuccess
+            ? $"已导入 {manifest.Name}：覆盖文件 {installed.Value!.OverridesCopied} 个，下载 {installed.Value!.Downloaded.Count} 个，待解析 {installed.Value!.Unresolved.Count} 个。"
+            : $"导入失败：{installed.Code}（{installed.Detail}）";
+
+        foreach (NavItem item in Pages)
+        {
+            if (item.Page is GameListPageViewModel games)
+            {
+                games.ApplyFilter();
+            }
         }
     }
 

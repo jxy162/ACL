@@ -10,7 +10,8 @@
         WindowStartupLocation="CenterScreen"
         SystemDecorations="None"
         Background="Transparent"
-        TransparencyLevelHint="Transparent">
+        TransparencyLevelHint="Transparent"
+        DragDrop.AllowDrop="True">
 
   <Border x:Name="RootFrame" CornerRadius="14" ClipToBounds="True">
     <Panel>
@@ -19,7 +20,7 @@
       <Border Background="#4D060C17" />
 
       <!-- ======== 常规界面 ======== -->
-      <Grid RowDefinitions="54,*,80" IsVisible="{Binding !IsFullscreen}">
+      <Grid RowDefinitions="54,*,Auto,80" IsVisible="{Binding !IsFullscreen}">
 
         <!-- 顶部栏 -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" PointerPressed="OnTitleBarPressed">
@@ -109,8 +110,14 @@
           </TransitioningContentControl>
         </Grid>
 
+        <!-- 拖入整合包后的状态 -->
+        <Border Grid.Row="2" Classes="AclCard" Margin="16,0,16,8" Padding="14,10"
+                IsVisible="{Binding ImportStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <TextBlock Text="{Binding ImportStatus}" Classes="AclCaption" TextWrapping="Wrap" />
+        </Border>
+
         <!-- 底部导航（左侧页面项 + 右侧主操作） -->
-        <Border Grid.Row="2" Classes="AclCard" CornerRadius="999" Margin="16,0,16,12" Padding="6">
+        <Border Grid.Row="3" Classes="AclCard" CornerRadius="999" Margin="16,0,16,12" Padding="6">
           <Grid ColumnDefinitions="*,Auto">
             <ItemsControl Grid.Column="0" ItemsSource="{Binding Pages}" VerticalAlignment="Center" Margin="6,0,0,0">
               <ItemsControl.ItemsPanel>

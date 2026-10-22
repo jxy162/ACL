@@ -84,6 +84,50 @@
       </ScrollViewer>
     </DataTemplate>
 
+    <!-- 游戏列表页 -->
+    <DataTemplate DataType="vm:GameListPageViewModel">
+      <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+        <Border Grid.Row="0" Classes="AclCard" Padding="24">
+          <StackPanel Spacing="10">
+            <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
+            <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
+            <CheckBox Content="仅显示已安装" IsChecked="{Binding InstalledOnly}" Foreground="{DynamicResource AclTextBrush}" />
+            <TextBlock Text="{Binding Status}" Classes="AclCaption" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Classes="AclCard" Padding="18">
+          <TextBlock Text="“启动”会切到主页并生成该版本的启动计划；游玩时长在每次游戏退出后累加并保存。"
+                     Classes="AclCaption" TextWrapping="Wrap" />
+        </Border>
+
+        <Border Grid.Row="2" Classes="AclCard" Padding="10">
+          <ListBox Classes="AclVersionList" ItemsSource="{Binding Rows}" MaxHeight="400">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:VersionRowViewModel">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="12">
+                  <Border Grid.Column="0" Classes="AclBadge" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding TypeLabel}" Classes="AclCaption" />
+                  </Border>
+                  <TextBlock Grid.Column="1" Text="{Binding Id}" Classes="AclBody" VerticalAlignment="Center" />
+                  <Border Grid.Column="2" Classes="AclBadge" VerticalAlignment="Center" IsVisible="{Binding IsInstalled}">
+                    <TextBlock Text="已安装" Classes="AclCaption" />
+                  </Border>
+                  <TextBlock Grid.Column="3" Text="{Binding PlayText}" Classes="AclCaption" VerticalAlignment="Center" MinWidth="60" />
+                  <Button Grid.Column="4" Classes="AclGhost" VerticalAlignment="Center"
+                          Command="{Binding Start}" CommandParameter="{Binding}">
+                    <StackPanel Orientation="Horizontal" Spacing="7">
+                      <Path Data="{DynamicResource AclIconPlay}" Width="11" Height="11" Stretch="Uniform" />
+                      <TextBlock Text="启动" />
+                    </StackPanel>
+                  </Button>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Border>
+      </Grid>
+    </DataTemplate>
     <!-- 下载页 -->
     <DataTemplate DataType="vm:DownloadPageViewModel">
       <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">

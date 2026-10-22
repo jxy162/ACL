@@ -45,6 +45,28 @@ public partial class AppState : ObservableObject
     [ObservableProperty]
     private bool _preferOfficial = true;
 
+    /// <summary>游玩时长变化事件（用于持久化）。</summary>
+    public event EventHandler? PlaytimeChanged;
+
+    /// <summary>各版本累计游玩分钟数。</summary>
+    public Dictionary<string, double> PlayMinutes { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>累加某版本的游玩时长并触发持久化。</summary>
+    public void AddPlayMinutes(string versionId, double minutes)
+    {
+        if (minutes <= 0)
+        {
+            return;
+        }
+
+        PlayMinutes[versionId] = PlayMinutes.TryGetValue(versionId, out double current) ? current + minutes : minutes;
+        PlaytimeChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>读取某版本累计时长。</summary>
+    public double GetPlayMinutes(string versionId)
+        => PlayMinutes.TryGetValue(versionId, out double minutes) ? minutes : 0;
+
     /// <summary>主题（dark / light）。</summary>
     [ObservableProperty]
     private string _theme = "dark";

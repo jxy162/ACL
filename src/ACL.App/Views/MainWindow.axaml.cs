@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using ACL.App.ViewModels;
 
 namespace ACL.App.Views;
@@ -16,6 +17,8 @@ public partial class MainWindow : Window
         InitializeComponent();
         KeyDown += OnKeyDown;
         Closing += (_, _) => (DataContext as MainWindowViewModel)?.SaveSettingsOnExit();
+        AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        AddHandler(DragDrop.DropEvent, OnDrop);
         PropertyChanged += (_, e) =>
         {
             if (e.Property == WindowStateProperty)
@@ -39,7 +42,7 @@ public partial class MainWindow : Window
             vm.ToggleFullscreenCommand.Execute(null);
             e.Handled = true;
         }
-        else if (e.KeyModifiers == KeyModifiers.Control && e.Key is >= Key.D1 and <= Key.D5)
+        else if (e.KeyModifiers == KeyModifiers.Control && e.Key is >= Key.D1 and <= Key.D6)
         {
             int index = e.Key - Key.D1;
             if (index < vm.Pages.Count)
@@ -53,6 +56,28 @@ public partial class MainWindow : Window
         {
             vm.ToggleFullscreenCommand.Execute(null);
             e.Handled = true;
+        }
+    }
+
+    private static void OnDragOver(object? sender, DragEventArgs e)
+        => e.DragEffects = e.DataTransfer?.Contains(DataFormat.File) == true ? DragDropEffects.Copy : DragDropEffects.None;
+
+    private async void OnDrop(object? sender, DragEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+        {
+            return;
+        }
+
+        foreach (IStorageItem item in e.DataTransfer?.TryGetFiles() ?? [])
+        {
+            string path = item.Path.LocalPath;
+            if (path.EndsWith(".mrpack", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                await vm.ImportModpackAsync(path);
+                break;
+            }
         }
     }
 

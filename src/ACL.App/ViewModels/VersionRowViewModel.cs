@@ -32,8 +32,20 @@ public sealed class VersionRowViewModel
     public string InstalledLabel => IsInstalled ? "已安装" : string.Empty;
 
     /// <summary>安装命令（由页面注入）。</summary>
-
     public ICommand? Install { get; set; }
+
+    /// <summary>累计游玩分钟数。</summary>
+    public double PlayMinutes { get; set; }
+
+    /// <summary>游玩时长文本。</summary>
+    public string PlayText => PlayMinutes <= 0
+        ? "—"
+        : PlayMinutes >= 60
+            ? $"{PlayMinutes / 60:F1} h"
+            : $"{PlayMinutes:F0} min";
+
+    /// <summary>启动命令（由游戏列表注入）。</summary>
+    public ICommand? Start { get; set; }
 
     /// <summary>类型标签。</summary>
     public string TypeLabel => Type switch
