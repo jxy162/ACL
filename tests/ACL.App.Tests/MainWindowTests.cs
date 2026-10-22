@@ -1,4 +1,5 @@
 using ACL.App.ViewModels;
+using Avalonia.Controls;
 using ACL.App.Views;
 using Avalonia.Headless;
 using Xunit;
@@ -36,6 +37,29 @@ public class MainWindowTests
         MainWindowViewModel vm = new();
 
         Assert.Equal(["launch", "games", "download", "resources", "dashboard", "settings", "more"], vm.Pages.Select(page => page.Key));
+    }
+
+    [Fact]
+    public async Task Window_SupportsMaximizeMinimizeRestore()
+    {
+        using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(App));
+        await session.Dispatch(
+            () =>
+            {
+                MainWindow window = new() { DataContext = new MainWindowViewModel() };
+                window.Show();
+
+                // 回归：最小化 / 最大化 / 还原 不得抛异常（曾因 x:Name 字段为空而崩溃）。
+                window.WindowState = WindowState.Minimized;
+                Assert.Equal(WindowState.Minimized, window.WindowState);
+
+                window.WindowState = WindowState.Maximized;
+                Assert.Equal(WindowState.Maximized, window.WindowState);
+
+                window.WindowState = WindowState.Normal;
+                Assert.Equal(WindowState.Normal, window.WindowState);
+            },
+            CancellationToken.None);
     }
 
     [Fact]

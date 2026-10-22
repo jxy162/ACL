@@ -5,7 +5,6 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
-using Avalonia.Controls;
 using ACL.App.ViewModels;
 
 namespace ACL.App.Views;
@@ -13,6 +12,8 @@ namespace ACL.App.Views;
 /// <summary>主窗口。</summary>
 public partial class MainWindow : Window
 {
+    private Border? _rootFrame;
+
     /// <summary>构造主窗口。</summary>
     public MainWindow()
     {
@@ -25,12 +26,14 @@ public partial class MainWindow : Window
         {
             if (e.Property == WindowStateProperty)
             {
-                RootFrame.CornerRadius = WindowState == WindowState.Maximized ? new CornerRadius(0) : new CornerRadius(14);
+                Border? frame = _rootFrame ??= this.FindControl<Border>("RootFrame");
+                if (frame is not null)
+                {
+                    frame.CornerRadius = WindowState == WindowState.Maximized ? new CornerRadius(0) : new CornerRadius(14);
+                }
             }
         };
     }
-
-    private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
