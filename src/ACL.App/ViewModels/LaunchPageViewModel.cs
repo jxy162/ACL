@@ -37,7 +37,15 @@ public partial class LaunchPageViewModel : PageViewModelBase
     [ObservableProperty]
     private string _planSummary = "尚未生成计划。";
 
+    /// <summary>共享状态（账号 / 版本 / 设置）。</summary>
+    public AppState State => _state;
+
+    /// <summary>Hero 中的大号版本标题。</summary>
+
+    public string VersionTitle => string.IsNullOrEmpty(_state.SelectedVersionId) ? "未选择版本" : _state.SelectedVersionId!;
+
     /// <summary>版本摘要。</summary>
+
     public string VersionSummary => string.IsNullOrEmpty(_state.SelectedVersionId)
         ? "版本：未选择"
         : $"版本：{_state.SelectedVersionId}";

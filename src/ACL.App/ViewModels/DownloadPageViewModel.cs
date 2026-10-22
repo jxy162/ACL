@@ -23,7 +23,11 @@ public partial class DownloadPageViewModel : PageViewModelBase
         _state = state;
     }
 
+    /// <summary>共享状态。</summary>
+    public AppState State => _state;
+
     /// <summary>全量版本列表（共享自 <see cref="AppState"/>）。</summary>
+
     public ObservableCollection<VersionRowViewModel> Versions => _state.Versions;
 
     /// <summary>筛选后的列表（绑定到界面）。</summary>

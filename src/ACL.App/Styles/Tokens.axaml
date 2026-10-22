@@ -1,53 +1,50 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- ACL 自有设计令牌（见 docs/12）：常规窗口用浅色内容面，全屏仪表盘用深色底。 -->
+  <!-- ACL 自有设计令牌：深色 + 壁纸背景 + 半透明面板（设计语言参考 LauncherX，实现自研）。 -->
   <Styles.Resources>
 
     <!-- 主色（ACL 自有取值） -->
     <LinearGradientBrush x:Key="AclPrimaryBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-      <GradientStop Color="#4F5BF2" Offset="0" />
-      <GradientStop Color="#1CB8D8" Offset="1" />
+      <GradientStop Color="#4F6BF5" Offset="0" />
+      <GradientStop Color="#22B8D8" Offset="1" />
     </LinearGradientBrush>
 
-    <!-- 浅色内容面 -->
-    <SolidColorBrush x:Key="AclSurfaceBrush" Color="#F2F4F9" />
-    <SolidColorBrush x:Key="AclCardBrush" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="AclStrokeBrush" Color="#E3E8F3" />
-    <SolidColorBrush x:Key="AclStrokeStrongBrush" Color="#D3DAEA" />
-    <SolidColorBrush x:Key="AclTextBrush" Color="#1A1D26" />
-    <SolidColorBrush x:Key="AclMutedTextBrush" Color="#6E7789" />
-    <SolidColorBrush x:Key="AclAccentBrush" Color="#1CB8D8" />
-    <SolidColorBrush x:Key="AclSecondaryTextBrush" Color="#4F5BF2" />
-    <SolidColorBrush x:Key="AclSelectionBrush" Color="#E9EDFE" />
-    <SolidColorBrush x:Key="AclBadgeBrush" Color="#EEF1F9" />
+    <!-- 深色半透明面板 -->
+    <SolidColorBrush x:Key="AclSurfaceBrush" Color="#A60C1524" />
+    <SolidColorBrush x:Key="AclCardBrush" Color="#B3121C2E" />
+    <SolidColorBrush x:Key="AclStrokeBrush" Color="#26FFFFFF" />
+    <SolidColorBrush x:Key="AclStrokeStrongBrush" Color="#3DFFFFFF" />
+    <SolidColorBrush x:Key="AclTextBrush" Color="#F2F6FF" />
+    <SolidColorBrush x:Key="AclMutedTextBrush" Color="#A9B6CE" />
+    <SolidColorBrush x:Key="AclAccentBrush" Color="#35C6DE" />
+    <SolidColorBrush x:Key="AclSecondaryTextBrush" Color="#8FB8FF" />
+    <SolidColorBrush x:Key="AclSelectionBrush" Color="#2EFFFFFF" />
+    <SolidColorBrush x:Key="AclBadgeBrush" Color="#26FFFFFF" />
     <SolidColorBrush x:Key="AclDangerBrush" Color="#E5484D" />
+    <SolidColorBrush x:Key="AclNavSelectedBrush" Color="#EAF0FA" />
+    <SolidColorBrush x:Key="AclNavSelectedTextBrush" Color="#16202F" />
 
-    <!-- 全屏仪表盘（深色） -->
-    <LinearGradientBrush x:Key="AclDarkBackgroundBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-      <GradientStop Color="#080E1B" Offset="0" />
-      <GradientStop Color="#132741" Offset="1" />
-    </LinearGradientBrush>
+    <!-- 全屏/窗口背景（作者自创壁纸） -->
+    <ImageBrush x:Key="AclWallpaperBrush" Source="avares://ACL.App/Assets/wallpaper.png" Stretch="UniformToFill" />
+
+    <!-- 兼容旧键名（全屏仪表盘沿用） -->
     <SolidColorBrush x:Key="AclDarkCardBrush" Color="#D916223A" />
     <SolidColorBrush x:Key="AclDarkStrokeBrush" Color="#2AFFFFFF" />
     <SolidColorBrush x:Key="AclDarkTextBrush" Color="#F2F6FF" />
     <SolidColorBrush x:Key="AclDarkMutedBrush" Color="#9FB0CE" />
 
     <StreamGeometry x:Key="AclLogoGeometry">M0,44 L13,0 L26,44 L19,44 L13,19 L7,44 Z</StreamGeometry>
-
-    <!-- 自绘图标（16x16 视框系） -->
     <StreamGeometry x:Key="AclIconPlay">M4,2.5 L13.5,8 L4,13.5 Z</StreamGeometry>
     <StreamGeometry x:Key="AclIconDownload">M7.2,1.5 H8.8 V7 H11.5 L8,11.5 L4.5,7 H7.2 Z M2.5,12.6 H13.5 V14.4 H2.5 Z</StreamGeometry>
     <StreamGeometry x:Key="AclIconSettings">M2.5,3.6 H13.5 V5.4 H2.5 Z M2.5,7.1 H13.5 V8.9 H2.5 Z M2.5,10.6 H13.5 V12.4 H2.5 Z</StreamGeometry>
     <StreamGeometry x:Key="AclIconMore">M2.4,6.7 H4.6 V9.3 H2.4 Z M6.9,6.7 H9.1 V9.3 H6.9 Z M11.4,6.7 H13.6 V9.3 H11.4 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconGrid">M2.5,2.5 H7.5 V7.5 H2.5 Z M8.5,2.5 H13.5 V7.5 H8.5 Z M2.5,8.5 H7.5 V13.5 H2.5 Z M8.5,8.5 H13.5 V13.5 H8.5 Z</StreamGeometry>
     <StreamGeometry x:Key="AclIconFolder">M1.8,3.4 H6.4 L7.6,5 H14.2 V12.6 H1.8 Z</StreamGeometry>
-    <StreamGeometry x:Key="AclIconUser">M5.8,2.2 H10.2 A1.9,1.9 0 0 1 12.1,4.1 V5.9 A1.9,1.9 0 0 1 10.2,7.8 H5.8 A1.9,1.9 0 0 1 3.9,5.9 V4.1 A1.9,1.9 0 0 1 5.8,2.2 Z M2.2,13.6 C2.2,10.4 4.7,8.6 8,8.6 C11.3,8.6 13.8,10.4 13.8,13.6 Z</StreamGeometry>
-    <StreamGeometry x:Key="AclIconJava">M6.2,2.2 C6.2,2.2 7.6,4.1 5.6,5.4 C3.6,6.7 5,8.1 5,8.1 M4.6,9.5 H11.4 V11.6 H4.6 Z M3.2,12.7 H12.8 V14.6 H3.2 Z</StreamGeometry>
     <StreamGeometry x:Key="AclIconRefresh">M8,2.4 A5.6,5.6 0 1 1 2.6,9.4 L4.2,9.1 A4,4 0 1 0 8,4 Z M7.1,1.4 L7.1,4.6 L10.3,3 Z</StreamGeometry>
     <StreamGeometry x:Key="AclIconMin">M2.6,7.2 H13.4 V8.8 H2.6 Z</StreamGeometry>
     <StreamGeometry x:Key="AclIconRestore">M2.6,2.6 H13.4 V4.2 H2.6 Z M2.6,2.6 H4.2 V13.4 H2.6 Z M11.8,2.6 H13.4 V13.4 H11.8 Z M2.6,11.8 H13.4 V13.4 H2.6 Z</StreamGeometry>
     <StreamGeometry x:Key="AclIconClose">M4.1,4.9 L4.9,4.1 L8,7.2 L11.1,4.1 L11.9,4.9 L8.8,8 L11.9,11.1 L11.1,11.9 L8,8.8 L4.9,11.9 L4.1,11.1 L7.2,8 Z</StreamGeometry>
-    <StreamGeometry x:Key="AclIconGrid">M2.5,2.5 H7.5 V7.5 H2.5 Z M8.5,2.5 H13.5 V7.5 H8.5 Z M2.5,8.5 H7.5 V13.5 H2.5 Z M8.5,8.5 H13.5 V13.5 H8.5 Z</StreamGeometry>
     <StreamGeometry x:Key="AclIconFullscreen">M2.4,2.4 H6 V4 H4 V6 H2.4 Z M10,2.4 H13.6 V6 H12 V4 H10 Z M2.4,10 H4 V12 H6 V13.6 H2.4 Z M12,10 H13.6 V13.6 H10 V12 H12 Z</StreamGeometry>
   </Styles.Resources>
 

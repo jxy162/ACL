@@ -170,6 +170,17 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>开始游戏：切到启动页并生成启动计划。</summary>
+    [RelayCommand]
+    private void StartGame()
+    {
+        SelectPage(Pages[0]);
+        if (Pages[0].Page is LaunchPageViewModel launch)
+        {
+            launch.PlanCommand.Execute(null);
+        }
+    }
+
     /// <summary>关闭前保存设置。</summary>
     public void SaveSettingsOnExit()
     {

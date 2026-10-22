@@ -52,7 +52,33 @@ public partial class AppState : ObservableObject
     /// <summary>头像占位字符。</summary>
     public string AvatarLetter => string.IsNullOrWhiteSpace(PlayerName) ? "A" : PlayerName[..1].ToUpperInvariant();
 
-    partial void OnSelectedVersionChanged(VersionRowViewModel? value) => SelectedVersionId = value?.Id;
+    /// <summary>Hero 大号标题。</summary>
+    public string VersionTitle => string.IsNullOrWhiteSpace(SelectedVersionId) ? "未选择版本" : SelectedVersionId!;
 
-    partial void OnPlayerNameChanged(string value) => OnPropertyChanged(nameof(AvatarLetter));
+    /// <summary>版本徽标文本。</summary>
+    public string VersionBadge => $"版本：{(string.IsNullOrWhiteSpace(SelectedVersionId) ? "未选择" : SelectedVersionId)}";
+
+    /// <summary>账号徽标文本。</summary>
+    public string AccountBadge => $"账号：{PlayerName}（离线）";
+
+    // 下拉框在列表重建时会瞬时写回 null，这里只在有效选择时更新“以此为准”的版本名。
+    partial void OnSelectedVersionChanged(VersionRowViewModel? value)
+    {
+        if (value is not null)
+        {
+            SelectedVersionId = value.Id;
+        }
+    }
+
+    partial void OnSelectedVersionIdChanged(string? value)
+    {
+        OnPropertyChanged(nameof(VersionTitle));
+        OnPropertyChanged(nameof(VersionBadge));
+    }
+
+    partial void OnPlayerNameChanged(string value)
+    {
+        OnPropertyChanged(nameof(AvatarLetter));
+        OnPropertyChanged(nameof(AccountBadge));
+    }
 }

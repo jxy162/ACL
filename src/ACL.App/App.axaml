@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ACL.App.ViewModels"
              x:Class="ACL.App.App"
-             RequestedThemeVariant="Light">
+             RequestedThemeVariant="Dark">
 
   <Application.DataTemplates>
 
@@ -10,14 +10,31 @@
     <DataTemplate DataType="vm:LaunchPageViewModel">
       <ScrollViewer>
         <StackPanel Spacing="12">
+          <Border Classes="AclCard" Padding="30">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="{Binding State.VersionTitle}" FontSize="34" FontWeight="Bold"
+                           Foreground="{StaticResource AclTextBrush}" />
+                <TextBlock Text="{Binding State.AccountBadge}" Classes="AclCaption" />
+              </StackPanel>
+              <Button Grid.Column="1" Classes="AclPrimary" Padding="30,13" FontSize="15" VerticalAlignment="Center"
+                      Command="{Binding PlanCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Data="{StaticResource AclIconPlay}" Width="13" Height="13" Stretch="Uniform" Fill="#FFFFFF" />
+                  <TextBlock Text="开始游戏" />
+                </StackPanel>
+              </Button>
+            </Grid>
+          </Border>
+
           <Border Classes="AclCard" Padding="26">
             <StackPanel Spacing="12">
               <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
               <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
 
               <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
-                <Border Classes="AclBadge"><TextBlock Text="{Binding VersionSummary}" Classes="AclCaption" /></Border>
-                <Border Classes="AclBadge"><TextBlock Text="{Binding AccountSummary}" Classes="AclCaption" /></Border>
+                <Border Classes="AclBadge"><TextBlock Text="{Binding State.VersionBadge}" Classes="AclCaption" /></Border>
+                <Border Classes="AclBadge"><TextBlock Text="{Binding State.AccountBadge}" Classes="AclCaption" /></Border>
               </StackPanel>
 
               <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,6,0,0">
@@ -44,7 +61,7 @@
               <TextBlock Text="运行环境" Classes="AclSection" />
               <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Java" Classes="AclCaption" />
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding JavaSummary}" Classes="AclBody" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding State.SelectedJavaHome, TargetNullValue=尚未探测（到“设置”页探测）, FallbackValue=尚未探测（到“设置”页探测）}" Classes="AclBody" TextWrapping="Wrap" />
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="游戏目录" Classes="AclCaption" />
                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding GameDirectorySummary}" Classes="AclBody" TextWrapping="Wrap" />
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="内存" Classes="AclCaption" />

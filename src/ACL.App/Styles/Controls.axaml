@@ -1,8 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- 自研控件样式（浅色内容面）；全屏仪表盘使用 AclDark* 变体。 -->
-
   <Style Selector="Window">
     <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, Inter, sans-serif" />
   </Style>
@@ -12,7 +10,7 @@
     <Setter Property="BorderBrush" Value="{StaticResource AclStrokeBrush}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="14" />
-    <Setter Property="BoxShadow" Value="0 4 14 0 #14102040" />
+    <Setter Property="BoxShadow" Value="0 6 20 0 #40000000" />
     <Setter Property="RenderTransform" Value="none" />
     <Setter Property="Transitions">
       <Transitions>
@@ -60,12 +58,12 @@
     <Setter Property="Padding" Value="10,3" />
   </Style>
 
-  <!-- 底部导航 -->
+  <!-- 底部导航：选中为浅色胶囊 + 深色文字（参考 LauncherX 的选中态） -->
   <Style Selector="Button.AclNav">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{StaticResource AclMutedTextBrush}" />
     <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="24,10" />
+    <Setter Property="Padding" Value="22,9" />
     <Setter Property="FontSize" Value="14" />
     <Setter Property="BorderThickness" Value="0" />
   </Style>
@@ -82,61 +80,59 @@
     <Setter Property="Background" Value="{StaticResource AclSelectionBrush}" />
   </Style>
 
+  <Style Selector="Button.AclNav.selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AclNavSelectedBrush}" />
+  </Style>
+
   <Style Selector="Button.AclNav.selected">
-    <Setter Property="Foreground" Value="#FFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource AclNavSelectedTextBrush}" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
-  <Style Selector="Button.AclNav.selected /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource AclPrimaryBrush}" />
-  </Style>
-
-  <!-- 深色变体（全屏仪表盘） -->
   <Style Selector="Button.AclNavDark">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{StaticResource AclDarkMutedBrush}" />
     <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="24,10" />
+    <Setter Property="Padding" Value="22,9" />
     <Setter Property="FontSize" Value="14" />
     <Setter Property="BorderThickness" Value="0" />
   </Style>
 
   <Style Selector="Button.AclNavDark.selected /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource AclPrimaryBrush}" />
+    <Setter Property="Background" Value="{StaticResource AclNavSelectedBrush}" />
   </Style>
 
   <Style Selector="Button.AclNavDark.selected">
-    <Setter Property="Foreground" Value="#FFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource AclNavSelectedTextBrush}" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
-  <!-- 主按钮 / 次按钮 / 图标按钮 -->
   <Style Selector="Button.AclPrimary">
     <Setter Property="Background" Value="{StaticResource AclPrimaryBrush}" />
     <Setter Property="Foreground" Value="#FFFFFF" />
     <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="26,12" />
+    <Setter Property="Padding" Value="24,11" />
     <Setter Property="FontSize" Value="14" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="BorderThickness" Value="0" />
   </Style>
 
   <Style Selector="Button.AclGhost">
-    <Setter Property="Background" Value="#FFFFFF" />
+    <Setter Property="Background" Value="#1FFFFFFF" />
     <Setter Property="Foreground" Value="{StaticResource AclTextBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource AclStrokeStrongBrush}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="22,10" />
+    <Setter Property="Padding" Value="20,9" />
     <Setter Property="FontSize" Value="13" />
   </Style>
 
   <Style Selector="Button.AclWindowButton">
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="{StaticResource AclMutedTextBrush}" />
+    <Setter Property="Foreground" Value="#D8DEEA" />
     <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="Width" Value="40" />
-    <Setter Property="Height" Value="32" />
+    <Setter Property="Width" Value="38" />
+    <Setter Property="Height" Value="30" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="FontSize" Value="13" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -145,15 +141,31 @@
   </Style>
 
   <Style Selector="Button.AclWindowButton:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="#E7EAF3" />
+    <Setter Property="Background" Value="#33FFFFFF" />
   </Style>
 
   <Style Selector="Button.AclWindowButton.danger:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="#E5484D" />
-    <Setter Property="TextElement.Foreground" Value="#FFFFFF" />
   </Style>
 
-  <!-- 版本列表行 -->
+  <!-- 图标着色 -->
+  <Style Selector="Button.AclNav Path, Button.AclNavDark Path, Button.AclWindowButton Path">
+    <Setter Property="Fill" Value="{StaticResource AclMutedTextBrush}" />
+  </Style>
+
+  <Style Selector="Button.AclNav.selected Path, Button.AclNavDark.selected Path">
+    <Setter Property="Fill" Value="{StaticResource AclNavSelectedTextBrush}" />
+  </Style>
+
+  <Style Selector="Button.AclWindowButton.danger:pointerover Path">
+    <Setter Property="Fill" Value="#FFFFFF" />
+  </Style>
+
+  <Style Selector="Button.AclGhost Path">
+    <Setter Property="Fill" Value="{StaticResource AclTextBrush}" />
+  </Style>
+
+  <!-- 版本/资源列表 -->
   <Style Selector="ListBox.AclVersionList">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
@@ -166,27 +178,6 @@
 
   <Style Selector="ListBox.AclVersionList ListBoxItem:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{StaticResource AclSelectionBrush}" />
-  </Style>
-
-  <!-- 图标着色（跟随按钮状态） -->
-  <Style Selector="Button.AclNav Path, Button.AclNavDark Path, Button.AclWindowButton Path">
-    <Setter Property="Fill" Value="{StaticResource AclMutedTextBrush}" />
-  </Style>
-
-  <Style Selector="Button.AclNav.selected Path">
-    <Setter Property="Fill" Value="#FFFFFF" />
-  </Style>
-
-  <Style Selector="Button.AclNavDark.selected Path">
-    <Setter Property="Fill" Value="#FFFFFF" />
-  </Style>
-
-  <Style Selector="Button.AclWindowButton.danger:pointerover Path">
-    <Setter Property="Fill" Value="#FFFFFF" />
-  </Style>
-
-  <Style Selector="Button.AclGhost Path">
-    <Setter Property="Fill" Value="{StaticResource AclSecondaryTextBrush}" />
   </Style>
 
 </Styles>

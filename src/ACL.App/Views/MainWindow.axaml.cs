@@ -58,5 +58,8 @@ public partial class MainWindow : Window
 
     private void OnMinimize(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
+    private void OnToggleMaximize(object? sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
     private void OnClose(object? sender, RoutedEventArgs e) => Close();
 }
