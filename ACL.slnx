@@ -24,6 +24,7 @@
     <Project Path="tests/ACL.Core.Download.Tests/ACL.Core.Download.Tests.csproj" />
     <Project Path="tests/ACL.Core.Java.Tests/ACL.Core.Java.Tests.csproj" />
     <Project Path="tests/ACL.Core.Launch.Tests/ACL.Core.Launch.Tests.csproj" />
+    <Project Path="tests/ACL.Core.Modpack.Tests/ACL.Core.Modpack.Tests.csproj" />
     <Project Path="tests/ACL.Core.Resources.Tests/ACL.Core.Resources.Tests.csproj" />
     <Project Path="tests/ACL.Core.Tasks.Tests/ACL.Core.Tasks.Tests.csproj" />
     <Project Path="tests/ACL.Core.Version.Tests/ACL.Core.Version.Tests.csproj" />

@@ -79,7 +79,7 @@ public class NativesExtractorTests
             foreach ((string name, string content) in entries)
             {
                 ZipArchiveEntry entry = archive.CreateEntry(name);
-                using StreamWriter writer = new(entry.Open(), Encoding.UTF8);
+                using StreamWriter writer = new(entry.Open(), new UTF8Encoding(false));
                 writer.Write(content);
             }
         }
