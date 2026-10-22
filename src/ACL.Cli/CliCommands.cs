@@ -3,6 +3,7 @@ using ACL.Core.Auth;
 using ACL.Core.Domain;
 using ACL.Core.Java;
 using ACL.Core.Launch;
+using ACL.Core.Resources;
 using ACL.Core.Version;
 
 namespace ACL.Cli;
@@ -34,6 +35,8 @@ public sealed class CliCommands
                 return await PlanAsync(line, cancellationToken).ConfigureAwait(false);
             case "login-offline":
                 return LoginOffline(line);
+            case "search":
+                return await SearchAsync(line, cancellationToken).ConfigureAwait(false);
             case "modpack":
                 return Modpack(line);
             default:
@@ -49,6 +52,7 @@ public sealed class CliCommands
         _output.WriteLine("  java                          列出本机 Java");
         _output.WriteLine("  plan <版本名>                  输出 dry-run 安装计划");
         _output.WriteLine("  login-offline <用户名>         生成离线会话");
+        _output.WriteLine("  search <关键字> [--source modrinth|curseforge] [--version V] [--loader fabric]");
         _output.WriteLine("  modpack <整合包路径>           解析整合包");
     }
 
@@ -113,6 +117,38 @@ public sealed class CliCommands
         foreach (string warning in plan.Warnings)
         {
             _output.WriteLine($"  警告：{warning}");
+        }
+
+        return 0;
+    }
+
+    private async Task<int> SearchAsync(CommandLine line, CancellationToken cancellationToken)
+    {
+        string? keyword = line.Arg(0);
+        if (string.IsNullOrEmpty(keyword))
+        {
+            _output.WriteLine("用法：search <关键字> [--source modrinth|curseforge] [--version V] [--loader fabric]");
+            return 1;
+        }
+
+        bool curseForge = string.Equals(line.Option("source"), "curseforge", StringComparison.OrdinalIgnoreCase);
+        IResourceIndex index = curseForge ? _services.CurseForge : _services.Modrinth;
+        ModLoaderKind? loader = LoaderNames.FromModrinth(line.Option("loader")) is { } kind && kind != ModLoaderKind.None
+            ? kind
+            : null;
+
+        Result<ResourceSearchResult> result = await index.SearchAsync(
+            new ResourceSearchQuery(keyword, ResourceKind.Mod, line.Option("version"), loader)).ConfigureAwait(false);
+        if (!result.IsSuccess)
+        {
+            _output.WriteLine($"搜索失败：{result.Code} {result.Detail}");
+            return 2;
+        }
+
+        _output.WriteLine($"[{index.Name}] 共 {result.Value!.Total} 条：");
+        foreach (ResourceProject project in result.Value!.Projects.Take(10))
+        {
+            _output.WriteLine($"  {project.Title,-40} {project.Downloads,10} 下载  {project.Id}");
         }
 
         return 0;

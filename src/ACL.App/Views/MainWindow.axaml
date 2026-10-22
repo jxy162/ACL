@@ -54,8 +54,15 @@
                 </StackPanel>
               </StackPanel>
               <TextBox Text="{Binding State.PlayerName}" Watermark="玩家名（离线）" />
-              <Button Classes="AclPrimary" Content="离线登录" HorizontalAlignment="Stretch"
-                      HorizontalContentAlignment="Center" Command="{Binding LoginOfflineCommand}" />
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button Grid.Column="0" Classes="AclPrimary" Content="离线登录" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" Command="{Binding LoginOfflineCommand}" />
+                <Button Grid.Column="1" Classes="AclGhost" Content="微软登录" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" Command="{Binding LoginMicrosoftCommand}"
+                        IsEnabled="{Binding !State.IsAuthenticating}" />
+              </Grid>
+              <TextBlock Text="{Binding State.DeviceCodeText}" Classes="AclCaption" TextWrapping="Wrap"
+                         IsVisible="{Binding State.DeviceCodeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
           </Border>
 

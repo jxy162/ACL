@@ -30,7 +30,7 @@ public partial class MainWindow : Window
             vm.ToggleFullscreenCommand.Execute(null);
             e.Handled = true;
         }
-        else if (e.KeyModifiers == KeyModifiers.Control && e.Key is >= Key.D1 and <= Key.D4)
+        else if (e.KeyModifiers == KeyModifiers.Control && e.Key is >= Key.D1 and <= Key.D5)
         {
             int index = e.Key - Key.D1;
             if (index < vm.Pages.Count)

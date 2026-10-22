@@ -4,6 +4,7 @@ using ACL.Core.Download;
 using ACL.Core.Java;
 using ACL.Core.Launch;
 using ACL.Core.Modpack;
+using ACL.Core.Resources;
 using ACL.Core.Version;
 using ACL.Infrastructure;
 
@@ -15,6 +16,7 @@ public sealed class AppServices
     private AppServices(
         IHttpTransport http,
         IFileSystem fileSystem,
+        ISecretProvider secrets,
         IMirrorPolicy mirrorPolicy,
         IDownloadService download,
         IVersionCatalog versions,
@@ -24,11 +26,14 @@ public sealed class AppServices
         INativesExtractor natives,
         IGameMonitor monitor,
         IModpackInstaller modpack,
+        IResourceIndex modrinth,
+        IResourceIndex curseForge,
         string dataDirectory,
         string gameDirectory)
     {
         Http = http;
         FileSystem = fileSystem;
+        Secrets = secrets;
         MirrorPolicy = mirrorPolicy;
         Download = download;
         Versions = versions;
@@ -38,6 +43,8 @@ public sealed class AppServices
         Natives = natives;
         Monitor = monitor;
         Modpack = modpack;
+        Modrinth = modrinth;
+        CurseForge = curseForge;
         DataDirectory = dataDirectory;
         GameDirectory = gameDirectory;
     }
@@ -47,6 +54,9 @@ public sealed class AppServices
 
     /// <summary>文件系统。</summary>
     public IFileSystem FileSystem { get; }
+
+    /// <summary>密钥来源（便携文件 + ACL_* + PCL_* 兼容）。</summary>
+    public ISecretProvider Secrets { get; }
 
     /// <summary>镜像策略。</summary>
     public IMirrorPolicy MirrorPolicy { get; }
@@ -75,11 +85,23 @@ public sealed class AppServices
     /// <summary>整合包安装。</summary>
     public IModpackInstaller Modpack { get; }
 
-    /// <summary>启动器数据目录。</summary>
+    /// <summary>Modrinth 资源索引。</summary>
+    public IResourceIndex Modrinth { get; }
+
+    /// <summary>CurseForge 资源索引。</summary>
+    public IResourceIndex CurseForge { get; }
+
+    /// <summary>启动器数据目录（便携：与启动器同目录）。</summary>
     public string DataDirectory { get; }
 
-    /// <summary>游戏根目录（默认与启动器同目录的 <c>.minecraft</c>，便携可拷贝）。</summary>
+    /// <summary>游戏根目录（默认同目录 <c>.minecraft</c>）。</summary>
     public string GameDirectory { get; }
+
+    /// <summary>是否已配置 CurseForge 密钥。</summary>
+    public bool HasCurseForgeKey => !string.IsNullOrEmpty(Secrets.GetSecret(CurseForgeClient.ApiKeySecretName));
+
+    /// <summary>是否已配置微软应用 Client ID。</summary>
+    public bool HasMicrosoftClientId => !string.IsNullOrEmpty(Secrets.GetSecret(AuthService.MicrosoftClientIdSecretKey));
 
     /// <summary>装配默认实现。</summary>
     public static AppServices Create()
@@ -92,6 +114,13 @@ public sealed class AppServices
 
         HttpTransport http = new();
         PhysicalFileSystem fileSystem = new();
+
+        // 密钥：便携文件 > ACL_* 环境变量 > 既有 PCL_* 环境变量（复用本机已设置的用户级变量）。
+        ISecretProvider secrets = new CompositeSecretProvider(
+            new FileSecretProvider(fileSystem, Path.Combine(dataDirectory, "ACL.secrets.json")),
+            new EnvironmentSecretProvider(),
+            new PrefixedCompatSecretProvider(new EnvironmentSecretProvider()));
+
         MirrorPolicy mirrorPolicy = new();
         DownloadService download = new(http, fileSystem, null, null, null, DownloadThrottle.Unlimited);
         VersionCatalog versions = new(http, mirrorPolicy);
@@ -109,15 +138,18 @@ public sealed class AppServices
         return new AppServices(
             http,
             fileSystem,
+            secrets,
             mirrorPolicy,
             download,
             versions,
             javaLocator,
-            new AuthService(http, new EnvironmentSecretProvider()),
+            new AuthService(http, secrets),
             new LaunchPlanner(),
             new NativesExtractor(fileSystem),
             new GameMonitor(new GameProcessLauncher()),
             new ModpackInstaller(fileSystem, download),
+            new ModrinthClient(http),
+            new CurseForgeClient(http, secrets),
             dataDirectory,
             gameDirectory);
     }

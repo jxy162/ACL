@@ -213,6 +213,66 @@
       </StackPanel>
     </DataTemplate>
 
+    <!-- 资源页 -->
+    <DataTemplate DataType="vm:ResourcePageViewModel">
+      <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+        <Border Grid.Row="0" Classes="AclCard" Padding="24">
+          <StackPanel Spacing="10">
+            <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
+            <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding KeyHint}" Classes="AclCaption" TextWrapping="Wrap"
+                       Foreground="{StaticResource AclSecondaryTextBrush}" />
+            <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8" Margin="0,4,0,0">
+              <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding Source}" MinWidth="130" />
+              <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="110" />
+              <ComboBox ItemsSource="{Binding Loaders}" SelectedItem="{Binding Loader}" MinWidth="110" />
+              <TextBox Text="{Binding GameVersion}" Watermark="游戏版本" MinWidth="120" />
+              <TextBox Text="{Binding Query}" Watermark="关键字（如 sodium，回车搜索）" MinWidth="200">
+                <TextBox.KeyBindings>
+                  <KeyBinding Gesture="Enter" Command="{Binding SearchCommand}" />
+                </TextBox.KeyBindings>
+              </TextBox>
+              <Button Classes="AclPrimary" Command="{Binding SearchCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Data="{StaticResource AclIconGrid}" Width="14" Height="14" Stretch="Uniform" Fill="#FFFFFF" />
+                  <TextBlock Text="搜索" />
+                </StackPanel>
+              </Button>
+            </WrapPanel>
+            <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="5" />
+            <TextBlock Text="{Binding Status}" Classes="AclCaption" />
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Classes="AclCard" Padding="18">
+          <TextBlock Text="安装位置：Mod → mods/　资源包 → resourcepacks/　光影 → shaderpacks/　数据包 → datapacks/（均位于便携游戏目录下）"
+                     Classes="AclCaption" TextWrapping="Wrap" />
+        </Border>
+
+        <Border Grid.Row="2" Classes="AclCard" Padding="10">
+          <ListBox Classes="AclVersionList" ItemsSource="{Binding Results}" MaxHeight="380">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:ResourceRowViewModel">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                  <StackPanel Spacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock Text="{Binding Title}" Classes="AclBody" FontWeight="SemiBold" />
+                      <Border Classes="AclBadge"><TextBlock Text="{Binding Downloads}" Classes="AclCaption" /></Border>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Author}" Classes="AclCaption" />
+                    <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" MaxWidth="620" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                    <Button Classes="AclGhost" Content="安装" Command="{Binding Install}" CommandParameter="{Binding}" />
+                    <TextBlock Text="{Binding Status}" Classes="AclCaption" HorizontalAlignment="Center" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Border>
+      </Grid>
+    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Styles>

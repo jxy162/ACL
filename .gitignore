@@ -22,3 +22,6 @@ temp/
 secrets/
 *.secrets.json
 .env
+
+# 便携密钥文件（切勿提交）
+ACL.secrets.json

@@ -1,9 +1,11 @@
 using ACL.Cli;
+using ACL.Core.Abstractions;
 using ACL.Core.Auth;
 using ACL.Core.Download;
 using ACL.Core.Java;
 using ACL.Core.Launch;
 using ACL.Core.Modpack;
+using ACL.Core.Resources;
 using ACL.Core.Version;
 using ACL.Infrastructure;
 
@@ -28,11 +30,18 @@ List<string> javaRoots =
 ];
 JavaLocator javaLocator = new(fileSystem, javaProbe, javaRoots);
 
-AuthService authService = new(http, new EnvironmentSecretProvider());
+ISecretProvider secrets = new CompositeSecretProvider(
+    new FileSecretProvider(fileSystem, Path.Combine(AppContext.BaseDirectory, "ACL.secrets.json")),
+    new EnvironmentSecretProvider(),
+    new PrefixedCompatSecretProvider(new EnvironmentSecretProvider()));
+AuthService authService = new(http, secrets);
 LaunchPlanner launchPlanner = new();
 NativesExtractor nativesExtractor = new(fileSystem);
 GameMonitor gameMonitor = new(new GameProcessLauncher());
 ModpackInstaller modpackInstaller = new(fileSystem, downloadService);
+
+ModrinthClient modrinth = new(http);
+CurseForgeClient curseForge = new(http, secrets);
 
 CliServices services = new(
     versionCatalog,
@@ -44,6 +53,8 @@ CliServices services = new(
     gameMonitor,
     modpackInstaller,
     authService,
+    modrinth,
+    curseForge,
     gameDirectory);
 
 CliCommands commands = new(services, Console.Out);

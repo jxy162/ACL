@@ -4,6 +4,7 @@ using ACL.Core.Download;
 using ACL.Core.Java;
 using ACL.Core.Launch;
 using ACL.Core.Modpack;
+using ACL.Core.Resources;
 using ACL.Core.Version;
 
 namespace ACL.Cli;
@@ -19,4 +20,6 @@ public sealed record CliServices(
     IGameMonitor Monitor,
     IModpackInstaller Modpack,
     IAuthService Auth,
+    IResourceIndex Modrinth,
+    IResourceIndex CurseForge,
     string GameDirectory);

@@ -4,6 +4,7 @@ using ACL.Core.Download;
 using ACL.Core.Java;
 using ACL.Core.Launch;
 using ACL.Core.Modpack;
+using ACL.Core.Resources;
 using ACL.Core.Version;
 using ACL.Testing;
 using Xunit;
@@ -110,6 +111,8 @@ public class CliCommandsTests
             new GameMonitor(new StubGameProcessLauncher()),
             new ModpackInstaller(fs, new DownloadService(http, fs)),
             new AuthService(http),
+            new ModrinthClient(http),
+            new CurseForgeClient(http, new StubSecretProvider(null)),
             "D:/mc");
 
         return (new CliCommands(services, output), output);

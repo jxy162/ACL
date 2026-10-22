@@ -25,6 +25,14 @@ public partial class AppState : ObservableObject
     [ObservableProperty]
     private string _accountStatus = "未登录";
 
+    /// <summary>设备码提示（登录中显示）。</summary>
+    [ObservableProperty]
+    private string _deviceCodeText = string.Empty;
+
+    /// <summary>是否登录中。</summary>
+    [ObservableProperty]
+    private bool _isAuthenticating;
+
     /// <summary>最小堆（MB）。</summary>
     [ObservableProperty]
     private double _minMemoryMb = 512;
