@@ -24,9 +24,41 @@ public sealed record ProcessResult(int ExitCode, string StandardOutput, string S
         : StandardOutput.Length == 0 ? StandardError : StandardOutput + "\n" + StandardError;
 }
 
-/// <summary>进程启动器抽象。</summary>
+/// <summary>进程启动器抽象（短任务：运行并等待结束）。</summary>
 public interface IProcessLauncher
 {
     /// <summary>运行进程并等待结束（捕获输出）。</summary>
     Task<Result<ProcessResult>> RunAsync(ProcessSpec spec, CancellationToken cancellationToken = default);
+}
+
+/// <summary>一个已启动的长时进程句柄。</summary>
+public interface IGameProcess : IDisposable
+{
+    /// <summary>进程 ID。</summary>
+    int Id { get; }
+
+    /// <summary>进程是否已退出。</summary>
+    bool HasExited { get; }
+
+    /// <summary>退出码（未退出时无意义）。</summary>
+    int ExitCode { get; }
+
+    /// <summary>标准输出读取器。</summary>
+    StreamReader StandardOutput { get; }
+
+    /// <summary>标准错误读取器。</summary>
+    StreamReader StandardError { get; }
+
+    /// <summary>等待退出。</summary>
+    Task WaitForExitAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>强制终止。</summary>
+    void Kill();
+}
+
+/// <summary>长时进程启动器（启动游戏并持续读取输出）。</summary>
+public interface IGameProcessLauncher
+{
+    /// <summary>启动进程。</summary>
+    Result<IGameProcess> Start(ProcessSpec spec);
 }
