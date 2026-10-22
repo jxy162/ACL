@@ -18,6 +18,8 @@ public sealed class DownloadService : IDownloadService
     private readonly IFileChecker _checker;
     private readonly IAppLogger _logger;
     private readonly IReadOnlyList<IDownloadInterceptor> _interceptors;
+    private readonly DownloadThrottle _throttle;
+    private readonly RateLimiter _limiter;
 
     /// <summary>构造下载服务。</summary>
     /// <param name="http">HTTP 传输。</param>
@@ -25,18 +27,22 @@ public sealed class DownloadService : IDownloadService
     /// <param name="checker">文件校验器；为 <see langword="null"/> 时使用默认实现。</param>
     /// <param name="logger">日志；为 <see langword="null"/> 时丢弃。</param>
     /// <param name="interceptors">请求拦截器链。</param>
+    /// <param name="throttle">节流配置（全局限速 / 并发上限）；为 <see langword="null"/> 时不限速。</param>
     public DownloadService(
         IHttpTransport http,
         IFileSystem fileSystem,
         IFileChecker? checker = null,
         IAppLogger? logger = null,
-        IEnumerable<IDownloadInterceptor>? interceptors = null)
+        IEnumerable<IDownloadInterceptor>? interceptors = null,
+        DownloadThrottle? throttle = null)
     {
         _http = http ?? throw new ArgumentNullException(nameof(http));
         _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         _checker = checker ?? new FileChecker(_fileSystem);
         _logger = logger ?? NullLogger.Instance;
         _interceptors = interceptors is null ? [] : [.. interceptors];
+        _throttle = throttle ?? DownloadThrottle.Unlimited;
+        _limiter = new RateLimiter(_throttle.BytesPerSecond);
     }
 
     /// <inheritdoc />
@@ -108,6 +114,7 @@ public sealed class DownloadService : IDownloadService
                     await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
                     written += read;
                     ReportProgress(progress, stage, written, total);
+                    await _limiter.ThrottleAsync(read, cancellationToken).ConfigureAwait(false);
                 }
 
                 await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -134,13 +141,14 @@ public sealed class DownloadService : IDownloadService
     /// <inheritdoc />
     public async Task<Result<IReadOnlyList<DownloadOutcome>>> DownloadManyAsync(
         IReadOnlyList<DownloadItem> items,
-        int maxConcurrency = 4,
+        int maxConcurrency = 0,
         IProgressSink? progress = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(items);
 
-        using SemaphoreSlim gate = new(maxConcurrency <= 0 ? 1 : maxConcurrency);
+        int concurrency = maxConcurrency > 0 ? maxConcurrency : _throttle.MaxConcurrency;
+        using SemaphoreSlim gate = new(concurrency);
         Task<Result<DownloadOutcome>>[] tasks = [.. items.Select(async item =>
         {
             await gate.WaitAsync(cancellationToken).ConfigureAwait(false);

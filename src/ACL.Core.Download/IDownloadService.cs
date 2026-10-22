@@ -53,6 +53,10 @@ public interface IDownloadService
         CancellationToken cancellationToken = default);
 
     /// <summary>批量下载（限并发）。返回每个项的明细；存在失败时 <c>Code</c> 非 <see cref="ErrorCode.None"/>，<c>Value</c> 仍含明细。</summary>
+    /// <param name="items">下载项列表。</param>
+    /// <param name="maxConcurrency">并发上限；<c>0</c> 表示使用节流配置的默认值。</param>
+    /// <param name="progress">进度接收端（可选）。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task<Result<IReadOnlyList<DownloadOutcome>>> DownloadManyAsync(
         IReadOnlyList<DownloadItem> items,
         int maxConcurrency = 4,
