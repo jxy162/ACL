@@ -763,7 +763,6 @@ public partial class MainWindowViewModel : ObservableObject, ILauncherHost
         DashboardPage.Refresh();
         RefreshInstances();
         UpdateLeftPanels();
-        ShowToast(VersionStatus);
     }
 
     /// <summary>整合包导入（拖入 .mrpack / .zip）。</summary>
