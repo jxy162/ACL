@@ -1,0 +1,27 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ACL 自有设计令牌（见 docs/12）。 -->
+  <Styles.Resources>
+    <LinearGradientBrush x:Key="AclPrimaryBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+      <GradientStop Color="#5B5BF0" Offset="0" />
+      <GradientStop Color="#17C3D9" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="AclBackgroundBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+      <GradientStop Color="#0A1120" Offset="0" />
+      <GradientStop Color="#14263D" Offset="1" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="AclCardBrush" Color="#CC16223A" />
+    <SolidColorBrush x:Key="AclSurfaceBrush" Color="#9910192B" />
+    <SolidColorBrush x:Key="AclStrokeBrush" Color="#2AFFFFFF" />
+    <SolidColorBrush x:Key="AclTextBrush" Color="#F2F6FF" />
+    <SolidColorBrush x:Key="AclMutedTextBrush" Color="#9FB0CE" />
+    <SolidColorBrush x:Key="AclAccentBrush" Color="#1FC8C0" />
+    <SolidColorBrush x:Key="AclSelectionBrush" Color="#335B5BF0" />
+
+    <StreamGeometry x:Key="AclLogoGeometry">M0,44 L13,0 L26,44 L19,44 L13,19 L7,44 Z</StreamGeometry>
+  </Styles.Resources>
+
+</Styles>

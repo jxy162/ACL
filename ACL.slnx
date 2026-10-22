@@ -19,6 +19,7 @@
     <Project Path="src/ACL.Platform.Windows/ACL.Platform.Windows.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ACL.App.Tests/ACL.App.Tests.csproj" />
     <Project Path="tests/ACL.Core.Auth.Tests/ACL.Core.Auth.Tests.csproj" />
     <Project Path="tests/ACL.Core.Domain.Tests/ACL.Core.Domain.Tests.csproj" />
     <Project Path="tests/ACL.Core.Download.Tests/ACL.Core.Download.Tests.csproj" />

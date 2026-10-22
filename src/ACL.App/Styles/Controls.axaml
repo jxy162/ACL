@@ -1,0 +1,79 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 自研控件样式（不使用任何第三方模板）。 -->
+
+  <Style Selector="Border.AclCard">
+    <Setter Property="Background" Value="{StaticResource AclCardBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AclStrokeBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="20" />
+    <Setter Property="BoxShadow" Value="0 8 24 0 #40000000" />
+  </Style>
+
+  <Style Selector="Border.AclSurface">
+    <Setter Property="Background" Value="{StaticResource AclSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AclStrokeBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="26" />
+  </Style>
+
+  <Style Selector="TextBlock.AclTitle">
+    <Setter Property="Foreground" Value="{StaticResource AclTextBrush}" />
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="TextBlock.AclCaption">
+    <Setter Property="Foreground" Value="{StaticResource AclMutedTextBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <Style Selector="Button.AclNav">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource AclMutedTextBrush}" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="22,10" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="Button.AclNav:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AclSelectionBrush}" />
+  </Style>
+
+  <Style Selector="Button.AclNav.selected">
+    <Setter Property="Foreground" Value="{StaticResource AclTextBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Button.AclNav.selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AclPrimaryBrush}" />
+  </Style>
+
+  <Style Selector="Button.AclWindowButton">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource AclMutedTextBrush}" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Width" Value="34" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="Button.AclWindowButton:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AclSelectionBrush}" />
+  </Style>
+
+  <Style Selector="Button.AclPrimary">
+    <Setter Property="Background" Value="{StaticResource AclPrimaryBrush}" />
+    <Setter Property="Foreground" Value="#FFFFFF" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="26,12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+</Styles>

@@ -1,0 +1,104 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ACL.App.ViewModels"
+        x:Class="ACL.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="ACL"
+        Width="1080" Height="720"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="Transparent">
+
+  <Panel>
+    <!-- 背景：ACL 自有渐变 + 两处辉光 -->
+    <Border Background="{StaticResource AclBackgroundBrush}" />
+    <Ellipse Width="720" Height="720" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-300,-240,0">
+      <Ellipse.Fill>
+        <RadialGradientBrush>
+          <GradientStop Color="#4040A0FF" Offset="0" />
+          <GradientStop Color="#0040A0FF" Offset="1" />
+        </RadialGradientBrush>
+      </Ellipse.Fill>
+    </Ellipse>
+    <Ellipse Width="560" Height="560" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-200,0,0,-220">
+      <Ellipse.Fill>
+        <RadialGradientBrush>
+          <GradientStop Color="#331FC8C0" Offset="0" />
+          <GradientStop Color="#001FC8C0" Offset="1" />
+        </RadialGradientBrush>
+      </Ellipse.Fill>
+    </Ellipse>
+
+    <Grid RowDefinitions="60,*,76">
+      <!-- 自定义标题栏 -->
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" PointerPressed="OnTitleBarPressed">
+        <StackPanel Orientation="Horizontal" Spacing="10" Margin="18,0,0,0" VerticalAlignment="Center">
+          <Path Data="{StaticResource AclLogoGeometry}"
+                Fill="{StaticResource AclPrimaryBrush}"
+                Width="20" Height="26" Stretch="Uniform" />
+          <TextBlock Text="ACL" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
+          <TextBlock Text="Minecraft 启动器" Classes="AclCaption" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" Margin="0,0,14,0" VerticalAlignment="Center">
+          <Button Classes="AclWindowButton" Content="–" Click="OnMinimize" />
+          <Button Classes="AclWindowButton" Content="✕" Click="OnClose" />
+        </StackPanel>
+      </Grid>
+
+      <!-- 主体：侧栏 + 内容 -->
+      <Grid Grid.Row="1" ColumnDefinitions="320,*" Margin="18,0,18,0">
+        <StackPanel Spacing="12">
+          <Border Classes="AclCard" Padding="18">
+            <StackPanel Spacing="6">
+              <TextBlock Text="账号" Classes="AclCaption" />
+              <TextBlock Text="未登录" Classes="AclTitle" />
+              <TextBlock Text="支持微软正版 / 离线 / 第三方" Classes="AclCaption" TextWrapping="Wrap" />
+              <Button Classes="AclPrimary" Content="登录" HorizontalAlignment="Left" Margin="0,8,0,0" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="18">
+            <StackPanel Spacing="6">
+              <TextBlock Text="版本" Classes="AclCaption" />
+              <TextBlock Text="未选择" Classes="AclTitle" />
+              <TextBlock Text="可在“下载”页安装原版与加载器" Classes="AclCaption" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="18">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Java" Classes="AclCaption" />
+              <TextBlock Text="自动探测" Classes="AclTitle" />
+              <TextBlock Text="按版本需求自动选择或下载" Classes="AclCaption" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <ContentControl Grid.Column="1" Margin="16,0,0,0" Content="{Binding CurrentPage}" />
+      </Grid>
+
+      <!-- 底部导航 -->
+      <Border Grid.Row="2" Classes="AclSurface" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8">
+        <ItemsControl ItemsSource="{Binding Pages}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="6" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:NavItem">
+              <Button Classes="AclNav"
+                      Classes.selected="{Binding IsSelected}"
+                      Content="{Binding Label}"
+                      Command="{Binding Select}"
+                      CommandParameter="{Binding}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+    </Grid>
+  </Panel>
+
+</Window>
