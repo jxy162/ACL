@@ -1,11 +1,11 @@
+using ACL.App.Animations;
+using ACL.App.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
-using ACL.App.ViewModels;
 
 namespace ACL.App.Views;
 
@@ -19,10 +19,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         KeyDown += OnKeyDown;
-        ApplyPageTransition();
         Closing += (_, _) => (DataContext as MainWindowViewModel)?.SaveSettingsOnExit();
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DropEvent, OnDrop);
+        ApplyPageTransition();
+
         PropertyChanged += (_, e) =>
         {
             if (e.Property == WindowStateProperty)
@@ -44,17 +45,36 @@ public partial class MainWindow : Window
         {
             vm.PropertyChanged += (_, args) =>
             {
-                if (args.PropertyName == nameof(MainWindowViewModel.IsDialogVisible) && vm.IsDialogVisible)
+                if (args.PropertyName == nameof(MainWindowViewModel.IsDialogVisible))
                 {
-                    PlayDialogEntrance();
+                    if (vm.IsDialogVisible)
+                    {
+                        PlayDialogEntrance();
+                    }
+                    else
+                    {
+                        ResetDialogVisuals();
+                    }
                 }
 
-                if (args.PropertyName == nameof(MainWindowViewModel.IsDialogVisible) && !vm.IsDialogVisible)
+                if (args.PropertyName == nameof(MainWindowViewModel.Toast) && !string.IsNullOrEmpty(vm.Toast))
                 {
-                    ResetDialogVisuals();
+                    PlayToastEntrance();
                 }
             };
         }
+    }
+
+    /// <summary>装配页面切换过渡（按“减弱动效”设置）。</summary>
+    private void ApplyPageTransition()
+        => PageHost.PageTransition = ExpressivePageTransition.Create(ExpressivePageTransition.ReduceMotion);
+
+    /// <summary>对话框进场：驱动属性到目标值，由样式中的 Transitions 完成动画（可打断、不跳变）。</summary>
+    private void PlayDialogEntrance()
+    {
+        DialogBackdrop.Opacity = 1d;
+        DialogCard.Opacity = 1d;
+        DialogCard.RenderTransform = Avalonia.Media.Transformation.TransformOperations.Parse("none");
     }
 
     /// <summary>关闭后复位对话框视觉状态，供下次进场动画使用。</summary>
@@ -62,21 +82,16 @@ public partial class MainWindow : Window
     {
         DialogBackdrop.Opacity = 0d;
         DialogCard.Opacity = 0d;
-        DialogCard.RenderTransform = Avalonia.Media.Transformation.TransformOperations.Parse("translate(0px,22px) scale(0.96)");
+        DialogCard.RenderTransform = Avalonia.Media.Transformation.TransformOperations.Parse("translate(0px,26px) scale(0.96)");
     }
 
-    /// <summary>装配页面切换过渡（按“减弱动效”设置）。</summary>
-    private void ApplyPageTransition()
-        => PageHost.PageTransition = ACL.App.Animations.ExpressivePageTransition.Create(
-            ACL.App.Animations.ExpressivePageTransition.ReduceMotion);
-
-    /// <summary>对话框进场：驱动属性到目标值，由样式中的 Transitions 负责动画。</summary>
-    private void PlayDialogEntrance()
+    /// <summary>轻提示进场：淡入 + 上移。</summary>
+    private void PlayToastEntrance()
     {
-        DialogBackdrop.Opacity = 1d;
-        DialogCard.Opacity = 1d;
-        DialogCard.RenderTransform = null;
+        ToastCard.Opacity = 1d;
+        ToastCard.RenderTransform = Avalonia.Media.Transformation.TransformOperations.Parse("none");
     }
+
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -141,8 +156,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        double y = e.GetPosition(this).Y;
-        if (y <= 58d)
+        if (e.GetPosition(this).Y <= 54d)
         {
             OnTitleBarPressed(sender, e);
         }
@@ -155,7 +169,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        // 双击标题栏：最大化 / 还原。
         if (e.ClickCount == 2)
         {
             OnToggleMaximize(this, new RoutedEventArgs());
@@ -164,7 +177,6 @@ public partial class MainWindow : Window
 
         BeginMoveDrag(e);
 
-        // 贴边吸附：拖动结束后贴近屏幕顶部 → 最大化。
         Screen? screen = Screens.ScreenFromWindow(this);
         if (screen is not null && WindowState == WindowState.Normal && Position.Y <= screen.WorkingArea.Y + 6)
         {

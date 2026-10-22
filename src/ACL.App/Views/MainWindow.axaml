@@ -21,7 +21,7 @@
       <Border Background="{DynamicResource AclOverlayBrush}" />
 
       <!-- ======== 常规界面 ======== -->
-      <Grid RowDefinitions="58,*,Auto,84" IsVisible="{Binding !IsFullscreen}">
+      <Grid RowDefinitions="54,*,Auto,74" IsVisible="{Binding !IsFullscreen}">
 
         <!-- 顶部栏（整条为拖拽区：透明背景保证命中测试） -->
         <Grid x:Name="TitleBar" Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Background="Transparent"
@@ -49,7 +49,7 @@
         </Grid>
 
         <!-- 主体 -->
-        <Grid Grid.Row="1" ColumnDefinitions="330,*" Margin="18,0,18,0">
+        <Grid Grid.Row="1" ColumnDefinitions="300,*" Margin="16,0,16,0">
           <ContentControl Grid.Column="0" Content="{Binding CurrentPage.LeftPanel}" />
           <TransitioningContentControl x:Name="PageHost" Grid.Column="1" Margin="14,0,0,0" Content="{Binding CurrentPage}" />
         </Grid>
@@ -61,7 +61,7 @@
         </Border>
 
         <!-- 底部导航（左侧页面项 + 右侧主操作） -->
-        <Border Grid.Row="3" Classes="AclCard" CornerRadius="999" Margin="16,0,16,12" Padding="6">
+        <Border Grid.Row="3" Classes="AclCard" CornerRadius="18" Margin="16,0,16,12" Padding="6">
           <Grid ColumnDefinitions="*,Auto">
             <ItemsControl Grid.Column="0" ItemsSource="{Binding Pages}" VerticalAlignment="Center" Margin="6,0,0,0">
               <ItemsControl.ItemsPanel>
@@ -114,8 +114,8 @@
         </Border>
       </Panel>
       <!-- 轻提示（Toast） -->
-      <Border Classes="AclCard" CornerRadius="999" Padding="22,11" HorizontalAlignment="Center" VerticalAlignment="Bottom"
-              Margin="0,0,0,96"
+      <Border x:Name="ToastCard" Classes="AclCard AclToast" CornerRadius="14" Padding="22,11" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+              Margin="0,0,0,96" Opacity="0"
               IsVisible="{Binding Toast, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
         <TextBlock Text="{Binding Toast}" Classes="AclBody" />
       </Border>

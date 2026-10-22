@@ -27,25 +27,26 @@
     <Setter Property="Background" Value="{DynamicResource AclSurfaceContainerHigh}" />
     <Setter Property="BorderBrush" Value="{DynamicResource AclOutlineVariant}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="28" />
-    <Setter Property="BoxShadow" Value="0 6 22 0 #33000000" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="BoxShadow" Value="0 2 10 0 #1F000000" />
     <Setter Property="RenderTransform" Value="none" />
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.18" Easing="CubicEaseOut" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.20" Easing="QuinticEaseOut" />
       </Transitions>
     </Setter>
   </Style>
 
   <Style Selector="Border.AclCard.hoverable:pointerover">
-    <Setter Property="RenderTransform" Value="scale(1.014)" />
+    <Setter Property="RenderTransform" Value="scale(1.005)" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AclOutline}" />
   </Style>
 
   <Style Selector="Border.AclDarkCard">
     <Setter Property="Background" Value="{DynamicResource AclDarkCardBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource AclOutlineVariant}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="28" />
+    <Setter Property="CornerRadius" Value="16" />
   </Style>
 
   <Style Selector="Border.AclBadge">
@@ -101,7 +102,7 @@
   <Style Selector="Button.AclPrimary">
     <Setter Property="Background" Value="{DynamicResource AclPrimaryBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource AclOnPrimary}" />
-    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="CornerRadius" Value="10" />
     <Setter Property="Padding" Value="24,11" />
     <Setter Property="FontSize" Value="14" />
     <Setter Property="FontWeight" Value="SemiBold" />
@@ -132,9 +133,9 @@
   <Style Selector="Button.AclGhost">
     <Setter Property="Background" Value="{DynamicResource AclSecondaryContainer}" />
     <Setter Property="Foreground" Value="{DynamicResource AclOnSecondaryContainer}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AclOutline}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AclOutlineVariant}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="CornerRadius" Value="10" />
     <Setter Property="Padding" Value="20,9" />
     <Setter Property="FontSize" Value="13" />
   </Style>
@@ -204,7 +205,7 @@
   </Style>
 
   <Style Selector="ListBox.AclVersionList ListBoxItem">
-    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="CornerRadius" Value="10" />
     <Setter Property="Padding" Value="12,10" />
     <Setter Property="Transitions">
       <Transitions>
@@ -222,18 +223,29 @@
     <Setter Property="Opacity" Value="0" />
     <Setter Property="Transitions">
       <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseOut" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="QuinticEaseOut" />
       </Transitions>
     </Setter>
   </Style>
 
   <Style Selector="Border.AclDialogCard">
     <Setter Property="Opacity" Value="0" />
-    <Setter Property="RenderTransform" Value="translate(0px,22px) scale(0.96)" />
+    <Setter Property="RenderTransform" Value="translate(0px,26px) scale(0.96)" />
     <Setter Property="Transitions">
       <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.20" Easing="CubicEaseOut" />
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.30" Easing="QuinticEaseOut" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.22" Easing="QuinticEaseOut" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.34" Easing="QuinticEaseOut" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Border.AclToast">
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="RenderTransform" Value="translate(0px,14px)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.20" Easing="QuinticEaseOut" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.28" Easing="QuinticEaseOut" />
       </Transitions>
     </Setter>
   </Style>
