@@ -26,6 +26,7 @@
     <Project Path="tests/ACL.Core.Tasks.Tests/ACL.Core.Tasks.Tests.csproj" />
     <Project Path="tests/ACL.Core.Version.Tests/ACL.Core.Version.Tests.csproj" />
     <Project Path="tests/ACL.Integration.Tests/ACL.Integration.Tests.csproj" />
+    <Project Path="tests/ACL.Platform.Windows.Tests/ACL.Platform.Windows.Tests.csproj" />
     <Project Path="tests/ACL.Testing/ACL.Testing.csproj" />
   </Folder>
 </Solution>

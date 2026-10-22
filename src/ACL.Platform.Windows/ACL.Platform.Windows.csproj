@@ -8,4 +8,8 @@
     <ProjectReference Include="..\ACL.Core.Abstractions\ACL.Core.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+  </ItemGroup>
+
 </Project>
