@@ -11,6 +11,9 @@ public enum HashKind
 
     /// <summary>MD5。</summary>
     Md5,
+
+    /// <summary>SHA-512。</summary>
+    Sha512,
 }
 
 /// <summary>哈希校验规格。</summary>
@@ -23,6 +26,9 @@ public sealed record HashSpec(HashKind Kind, string Value)
 
     /// <summary>以 SHA-256 构造。</summary>
     public static HashSpec Sha256(string value) => new(HashKind.Sha256, value);
+
+    /// <summary>以 SHA-512 构造。</summary>
+    public static HashSpec Sha512(string value) => new(HashKind.Sha512, value);
 }
 
 /// <summary>单个下载项。</summary>

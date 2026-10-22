@@ -23,6 +23,9 @@ public enum ErrorCode
     /// <summary>镜像不可用。</summary>
     MirrorUnavailable,
 
+    /// <summary>被服务方限流（HTTP 429），应退避后重试。</summary>
+    RateLimited,
+
     /// <summary>认证令牌过期（可尝试刷新）。</summary>
     AuthExpired,
 

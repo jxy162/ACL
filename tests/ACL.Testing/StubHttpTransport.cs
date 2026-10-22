@@ -7,6 +7,7 @@ public sealed class StubHttpTransport : IHttpTransport
 {
     private readonly Dictionary<string, Func<HttpRequest, Result<HttpResponse>>> _handlers = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Func<HttpRequest, CancellationToken, Task<Result<HttpResponse>>>> _asyncHandlers = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Func<HttpRequest, Result<HttpResponse>>> _prefixHandlers = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<HttpRequest> _requests = [];
 
     /// <summary>已收到的请求（按顺序）。</summary>
@@ -39,6 +40,17 @@ public sealed class StubHttpTransport : IHttpTransport
         return this;
     }
 
+    /// <summary>按 URL 前缀匹配处理器（便于带查询串的请求）。</summary>
+    public StubHttpTransport OnPrefix(string prefix, Func<HttpRequest, Result<HttpResponse>> handler)
+    {
+        _prefixHandlers[prefix] = handler;
+        return this;
+    }
+
+    /// <summary>按 URL 前缀匹配 JSON 响应。</summary>
+    public StubHttpTransport OnPrefixJson(string prefix, string json, int statusCode = 200)
+        => OnPrefix(prefix, _ => StubResponses.Json(json, statusCode));
+
     public StubHttpTransport OnFail(string url, ErrorCode code = ErrorCode.Network)
         => On(url, _ => Result<HttpResponse>.Failure(code, "stub failure"));
 
@@ -67,6 +79,14 @@ public sealed class StubHttpTransport : IHttpTransport
         if (_handlers.TryGetValue(url, out Func<HttpRequest, Result<HttpResponse>>? handler))
         {
             return Task.FromResult(handler(request));
+        }
+
+        foreach (KeyValuePair<string, Func<HttpRequest, Result<HttpResponse>>> prefixHandler in _prefixHandlers)
+        {
+            if (url.StartsWith(prefixHandler.Key, StringComparison.OrdinalIgnoreCase))
+            {
+                return Task.FromResult(prefixHandler.Value(request));
+            }
         }
 
         if (_asyncHandlers.TryGetValue(url, out Func<HttpRequest, CancellationToken, Task<Result<HttpResponse>>>? asyncHandler))

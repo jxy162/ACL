@@ -32,6 +32,7 @@ public sealed class FileChecker : IFileChecker
             HashKind.Sha1 => HashAlgorithmName.SHA1,
             HashKind.Sha256 => HashAlgorithmName.SHA256,
             HashKind.Md5 => HashAlgorithmName.MD5,
+            HashKind.Sha512 => HashAlgorithmName.SHA512,
             _ => throw new ArgumentOutOfRangeException(nameof(spec), spec.Kind, "未知哈希算法。"),
         };
 
