@@ -26,7 +26,7 @@ public partial class LaunchPageViewModel : PageViewModelBase
         _state = state;
         _host = host;
 
-        LaunchSelectedCommand = new AsyncRelayCommand(LaunchSelectedAsync, () => CanLaunchSelected);
+        LaunchSelectedCommand = new AsyncRelayCommand(LaunchSelectedAsync);
         InstallSelectedCommand = new RelayCommand(InstallSelected, () => _state.SelectedVersion is not null);
         LaunchInstanceCommand = new AsyncRelayCommand<string>(id => id is null ? Task.CompletedTask : _host.LaunchInstanceAsync(id));
         RefreshCommand = new AsyncRelayCommand(RefreshAsync);
@@ -154,10 +154,22 @@ public partial class LaunchPageViewModel : PageViewModelBase
 
     private async Task LaunchSelectedAsync()
     {
-        if (_state.SelectedVersionId is { Length: > 0 } id && CanLaunchSelected)
+        if (_state.SelectedVersion is not { } row)
         {
-            await _host.LaunchInstanceAsync(id).ConfigureAwait(true);
+            _host.ShowToast("请先在右侧选择一个版本");
+            _host.ShowPage("download");
+            return;
         }
+
+        if (!row.IsInstalled)
+        {
+            // 未安装时不弹错误，直接引导到安装页面（避免"按钮点了没反应"的困惑）。
+            _host.ShowToast($"{row.Id} 尚未安装，已打开安装页面");
+            _host.OpenInstallPage(row);
+            return;
+        }
+
+        await _host.LaunchInstanceAsync(row.Id).ConfigureAwait(true);
     }
 
     private void InstallSelected()
