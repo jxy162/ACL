@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ACL.App.ViewModels;
@@ -7,15 +8,18 @@ namespace ACL.App.ViewModels;
 public partial class NavItem : ObservableObject
 {
     /// <summary>构造导航项。</summary>
-    public NavItem(string key, string icon, PageViewModelBase page)
+    private readonly string _iconData;
+    private Geometry? _icon;
+
+    public NavItem(string key, string iconData, PageViewModelBase page)
     {
         Key = key;
-        Icon = icon;
+        _iconData = iconData;
         Page = page;
     }
 
-    /// <summary>图标字符。</summary>
-    public string Icon { get; }
+    /// <summary>图标几何（延迟解析：仅在界面线程首次读取时创建）。</summary>
+    public Geometry Icon => _icon ??= Geometry.Parse(_iconData);
 
     /// <summary>标识。</summary>
     public string Key { get; }

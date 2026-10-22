@@ -45,7 +45,19 @@ public partial class LaunchPageViewModel : PageViewModelBase
     /// <summary>账号摘要。</summary>
     public string AccountSummary => $"账号：{_state.PlayerName}（离线）";
 
+    /// <summary>Java 摘要。</summary>
+    public string JavaSummary => string.IsNullOrEmpty(_state.SelectedJavaHome)
+        ? "尚未探测（到“设置”页探测）"
+        : _state.SelectedJavaHome!;
+
+    /// <summary>游戏目录摘要。</summary>
+    public string GameDirectorySummary => _services.GameDirectory;
+
+    /// <summary>内存摘要。</summary>
+    public string MemorySummary => $"{(int)_state.MinMemoryMb} - {(int)_state.MaxMemoryMb} MB";
+
     /// <summary>日志。</summary>
+
     public ObservableCollection<string> Log { get; } = [];
 
     /// <summary>生成启动计划（dry-run）。</summary>

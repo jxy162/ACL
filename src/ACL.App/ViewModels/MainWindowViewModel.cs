@@ -32,10 +32,10 @@ public partial class MainWindowViewModel : ObservableObject
 
         Pages =
         [
-            new NavItem("launch", "▶", new LaunchPageViewModel(services, State)),
-            new NavItem("download", "⬇", new DownloadPageViewModel(services, State)),
-            new NavItem("settings", "⚙", new SettingsPageViewModel(services, State)),
-            new NavItem("more", "⋯", new MorePageViewModel(services)),
+            new NavItem("launch", "M4,2.5 L13.5,8 L4,13.5 Z", new LaunchPageViewModel(services, State)),
+            new NavItem("download", "M7.2,1.5 H8.8 V7 H11.5 L8,11.5 L4.5,7 H7.2 Z M2.5,12.6 H13.5 V14.4 H2.5 Z", new DownloadPageViewModel(services, State)),
+            new NavItem("settings", "M2.5,3.6 H13.5 V5.4 H2.5 Z M2.5,7.1 H13.5 V8.9 H2.5 Z M2.5,10.6 H13.5 V12.4 H2.5 Z", new SettingsPageViewModel(services, State)),
+            new NavItem("more", "M2.4,6.7 H4.6 V9.3 H2.4 Z M6.9,6.7 H9.1 V9.3 H6.9 Z M11.4,6.7 H13.6 V9.3 H11.4 Z", new MorePageViewModel(services)),
         ];
 
         foreach (NavItem page in Pages)

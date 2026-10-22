@@ -23,8 +23,55 @@ public partial class DownloadPageViewModel : PageViewModelBase
         _state = state;
     }
 
-    /// <summary>版本列表（共享自 <see cref="AppState"/>）。</summary>
+    /// <summary>全量版本列表（共享自 <see cref="AppState"/>）。</summary>
     public ObservableCollection<VersionRowViewModel> Versions => _state.Versions;
+
+    /// <summary>筛选后的列表（绑定到界面）。</summary>
+    public ObservableCollection<VersionRowViewModel> Filtered { get; } = [];
+
+    /// <summary>类型筛选项。</summary>
+    public ObservableCollection<string> KindFilters { get; } = ["全部", "正式版", "快照"];
+
+    /// <summary>关键字筛选。</summary>
+    [ObservableProperty]
+    private string _filter = string.Empty;
+
+    /// <summary>类型筛选。</summary>
+    [ObservableProperty]
+    private string _kindFilter = "全部";
+
+    partial void OnFilterChanged(string value) => ApplyFilter();
+
+    partial void OnKindFilterChanged(string value) => ApplyFilter();
+
+    /// <summary>按筛选条件重建列表，并检测本地是否已安装。</summary>
+    public void ApplyFilter()
+    {
+        Filtered.Clear();
+        string keyword = Filter.Trim();
+        foreach (VersionRowViewModel row in _state.Versions)
+        {
+            if (keyword.Length > 0 && !row.Id.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (KindFilter switch
+                {
+                    "正式版" => row.Type != "release",
+                    "快照" => row.Type != "snapshot",
+                    _ => false,
+                })
+            {
+                continue;
+            }
+
+            row.Install = InstallCommand;
+            row.IsInstalled = _services.FileSystem.FileExists(
+                Path.Combine(_services.GameDirectory, "versions", row.Id, row.Id + ".jar"));
+            Filtered.Add(row);
+        }
+    }
 
     /// <summary>状态。</summary>
     [ObservableProperty]
@@ -51,11 +98,7 @@ public partial class DownloadPageViewModel : PageViewModelBase
         try
         {
             string summary = await VersionLoader.LoadIntoAsync(_services, _state).ConfigureAwait(true);
-            foreach (VersionRowViewModel row in _state.Versions)
-            {
-                row.Install = InstallCommand;
-            }
-
+            ApplyFilter();
             Status = summary;
         }
         finally

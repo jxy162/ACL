@@ -168,4 +168,25 @@
     <Setter Property="Background" Value="{StaticResource AclSelectionBrush}" />
   </Style>
 
+  <!-- 图标着色（跟随按钮状态） -->
+  <Style Selector="Button.AclNav Path, Button.AclNavDark Path, Button.AclWindowButton Path">
+    <Setter Property="Fill" Value="{StaticResource AclMutedTextBrush}" />
+  </Style>
+
+  <Style Selector="Button.AclNav.selected Path">
+    <Setter Property="Fill" Value="#FFFFFF" />
+  </Style>
+
+  <Style Selector="Button.AclNavDark.selected Path">
+    <Setter Property="Fill" Value="#FFFFFF" />
+  </Style>
+
+  <Style Selector="Button.AclWindowButton.danger:pointerover Path">
+    <Setter Property="Fill" Value="#FFFFFF" />
+  </Style>
+
+  <Style Selector="Button.AclGhost Path">
+    <Setter Property="Fill" Value="{StaticResource AclSecondaryTextBrush}" />
+  </Style>
+
 </Styles>

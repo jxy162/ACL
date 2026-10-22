@@ -25,7 +25,14 @@ public sealed class VersionRowViewModel
     /// <summary>发布时间文本。</summary>
     public string Released => ReleaseTime == default ? "—" : ReleaseTime.ToString("yyyy-MM-dd");
 
+    /// <summary>本地是否已存在该版本（客户端 jar）。</summary>
+    public bool IsInstalled { get; set; }
+
+    /// <summary>已安装标记文本。</summary>
+    public string InstalledLabel => IsInstalled ? "已安装" : string.Empty;
+
     /// <summary>安装命令（由页面注入）。</summary>
+
     public ICommand? Install { get; set; }
 
     /// <summary>类型标签。</summary>

@@ -24,9 +24,15 @@
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="0,0,10,0" VerticalAlignment="Center">
-          <Button Classes="AclWindowButton" Content="⛶" ToolTip.Tip="全屏仪表盘（F11）" Command="{Binding ToggleFullscreenCommand}" />
-          <Button Classes="AclWindowButton" Content="–" ToolTip.Tip="最小化" Click="OnMinimize" />
-          <Button Classes="AclWindowButton danger" Content="✕" ToolTip.Tip="关闭" Click="OnClose" />
+          <Button Classes="AclWindowButton" ToolTip.Tip="全屏仪表盘（F11）" Command="{Binding ToggleFullscreenCommand}">
+            <Path Data="{StaticResource AclIconFullscreen}" Width="15" Height="15" Stretch="Uniform" />
+          </Button>
+          <Button Classes="AclWindowButton" ToolTip.Tip="最小化" Click="OnMinimize">
+            <Path Data="{StaticResource AclIconMin}" Width="15" Height="15" Stretch="Uniform" />
+          </Button>
+          <Button Classes="AclWindowButton danger" ToolTip.Tip="关闭" Click="OnClose">
+            <Path Data="{StaticResource AclIconClose}" Width="15" Height="15" Stretch="Uniform" />
+          </Button>
         </StackPanel>
       </Grid>
 
@@ -105,7 +111,7 @@
               <Button Classes="AclNav" Classes.selected="{Binding IsSelected}"
                       Command="{Binding Select}" CommandParameter="{Binding}">
                 <StackPanel Orientation="Horizontal" Spacing="7">
-                  <TextBlock Text="{Binding Icon}" FontSize="13" />
+                  <Path Data="{Binding Icon}" Width="14" Height="14" Stretch="Uniform" />
                   <TextBlock Text="{Binding Label}" />
                 </StackPanel>
               </Button>
@@ -138,7 +144,7 @@
               <Button Classes="AclNavDark" Classes.selected="{Binding IsSelected}"
                       Command="{Binding Select}" CommandParameter="{Binding}">
                 <StackPanel Orientation="Horizontal" Spacing="7">
-                  <TextBlock Text="{Binding Icon}" FontSize="13" />
+                  <Path Data="{Binding Icon}" Width="14" Height="14" Stretch="Uniform" />
                   <TextBlock Text="{Binding Label}" />
                 </StackPanel>
               </Button>
@@ -146,7 +152,9 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Button Grid.Column="2" Classes="AclWindowButton" Content="✕" ToolTip.Tip="退出全屏（Esc）" Command="{Binding ToggleFullscreenCommand}" />
+        <Button Grid.Column="2" Classes="AclWindowButton" ToolTip.Tip="退出全屏（Esc）" Command="{Binding ToggleFullscreenCommand}">
+          <Path Data="{StaticResource AclIconClose}" Width="15" Height="15" Stretch="Uniform" />
+        </Button>
       </Grid>
 
       <StackPanel Grid.Row="1" Spacing="16" VerticalAlignment="Center">

@@ -39,6 +39,20 @@
             </StackPanel>
           </Border>
 
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="8">
+              <TextBlock Text="运行环境" Classes="AclSection" />
+              <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Java" Classes="AclCaption" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding JavaSummary}" Classes="AclBody" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="游戏目录" Classes="AclCaption" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding GameDirectorySummary}" Classes="AclBody" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="内存" Classes="AclCaption" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MemorySummary}" Classes="AclBody" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
           <Border Classes="AclCard" Padding="20">
             <StackPanel Spacing="8">
               <TextBlock Text="计划" Classes="AclSection" />
@@ -68,7 +82,14 @@
             <TextBlock Text="{Binding GameDirectory}" FontSize="12" FontFamily="Cascadia Mono,Consolas,monospace"
                        Foreground="{StaticResource AclSecondaryTextBrush}" TextWrapping="Wrap" />
             <StackPanel Orientation="Horizontal" Spacing="10">
-              <Button Classes="AclPrimary" Content="刷新版本清单" Command="{Binding RefreshCommand}" />
+              <Button Classes="AclPrimary" Command="{Binding RefreshCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Data="{StaticResource AclIconRefresh}" Width="14" Height="14" Stretch="Uniform" Fill="#FFFFFF" />
+                  <TextBlock Text="刷新版本清单" />
+                </StackPanel>
+              </Button>
+              <ComboBox ItemsSource="{Binding KindFilters}" SelectedItem="{Binding KindFilter}" MinWidth="110" />
+              <TextBox Text="{Binding Filter}" Watermark="搜索版本（如 1.20）" MinWidth="200" />
             </StackPanel>
             <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="6" />
             <TextBlock Text="{Binding Status}" Classes="AclCaption" />
@@ -81,7 +102,7 @@
         </Border>
 
         <Border Grid.Row="2" Classes="AclCard" Padding="10">
-          <ListBox Classes="AclVersionList" ItemsSource="{Binding Versions}" MaxHeight="360">
+          <ListBox Classes="AclVersionList" ItemsSource="{Binding Filtered}" MaxHeight="360">
             <ListBox.ItemTemplate>
               <DataTemplate DataType="vm:VersionRowViewModel">
                 <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
@@ -90,7 +111,12 @@
                   </Border>
                   <TextBlock Grid.Column="1" Text="{Binding Id}" Classes="AclBody" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="2" Text="{Binding Released}" Classes="AclCaption" VerticalAlignment="Center" />
-                  <Button Grid.Column="3" Classes="AclGhost" Content="安装" Command="{Binding Install}" CommandParameter="{Binding}" />
+                  <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Border Classes="AclBadge" IsVisible="{Binding IsInstalled}">
+                      <TextBlock Text="已安装" Classes="AclCaption" />
+                    </Border>
+                    <Button Classes="AclGhost" Content="安装" Command="{Binding Install}" CommandParameter="{Binding}" />
+                  </StackPanel>
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -104,27 +130,44 @@
       <ScrollViewer>
         <StackPanel Spacing="12">
           <Border Classes="AclCard" Padding="24">
-            <StackPanel Spacing="12">
+            <StackPanel Spacing="6">
               <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
               <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
-              <TextBlock Text="最大内存" Classes="AclSection" Margin="0,6,0,0" />
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="10">
+              <TextBlock Text="启动" Classes="AclSection" />
+              <TextBlock Text="最大内存" Classes="AclCaption" />
               <Slider Minimum="512" Maximum="32768" TickFrequency="512" Value="{Binding State.MaxMemoryMb}" />
               <TextBlock Text="{Binding State.MaxMemoryMb, StringFormat='{}{0:F0} MB'}" Classes="AclCaption" />
-
-              <TextBlock Text="最小内存" Classes="AclSection" Margin="0,6,0,0" />
+              <TextBlock Text="最小内存" Classes="AclCaption" Margin="0,4,0,0" />
               <Slider Minimum="256" Maximum="8192" TickFrequency="256" Value="{Binding State.MinMemoryMb}" />
               <TextBlock Text="{Binding State.MinMemoryMb, StringFormat='{}{0:F0} MB'}" Classes="AclCaption" />
-
-              <CheckBox Content="优先使用官方源（关闭则镜像优先）" IsChecked="{Binding State.PreferOfficial}"
-                        Foreground="{StaticResource AclTextBrush}" />
-
-              <TextBlock Text="玩家名（离线登录）" Classes="AclSection" Margin="0,6,0,0" />
+              <TextBlock Text="玩家名（离线登录）" Classes="AclCaption" Margin="0,4,0,0" />
               <TextBox Text="{Binding State.PlayerName}" />
+            </StackPanel>
+          </Border>
 
-              <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,6,0,0">
-                <Button Classes="AclPrimary" Content="探测 Java" Command="{Binding DetectJavaCommand}" />
-              </StackPanel>
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="10">
+              <TextBlock Text="网络" Classes="AclSection" />
+              <CheckBox Content="优先使用官方源（关闭则镜像优先：BMCLAPI）" IsChecked="{Binding State.PreferOfficial}"
+                        Foreground="{StaticResource AclTextBrush}" />
+              <TextBlock Text="下载支持多源回退、断点续传与限速（内核已实现）。" Classes="AclCaption" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="10">
+              <TextBlock Text="Java" Classes="AclSection" />
+              <Button Classes="AclPrimary" Command="{Binding DetectJavaCommand}" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Data="{StaticResource AclIconJava}" Width="14" Height="14" Stretch="Uniform" Fill="#FFFFFF" />
+                  <TextBlock Text="探测本机 Java" />
+                </StackPanel>
+              </Button>
               <TextBlock Text="{Binding Status}" Classes="AclCaption" />
               <ItemsControl ItemsSource="{Binding JavaRuntimes}">
                 <ItemsControl.ItemTemplate>
@@ -137,7 +180,7 @@
             </StackPanel>
           </Border>
 
-          <Border Classes="AclCard" Padding="20">
+          <Border Classes="AclCard" Padding="22">
             <StackPanel Spacing="6">
               <TextBlock Text="目录（便携式）" Classes="AclSection" />
               <TextBlock Text="{Binding DataDirectory}" FontSize="12" FontFamily="Cascadia Mono,Consolas,monospace"
@@ -149,7 +192,6 @@
         </StackPanel>
       </ScrollViewer>
     </DataTemplate>
-
     <!-- 更多页 -->
     <DataTemplate DataType="vm:MorePageViewModel">
       <StackPanel Spacing="12">
