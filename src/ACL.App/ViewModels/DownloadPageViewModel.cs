@@ -1,96 +1,97 @@
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 using ACL.App.Services;
 using ACL.Core.Abstractions;
-using ACL.Core.Domain;
-using ACL.Core.Download;
-using ACL.Core.Version;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace ACL.App.ViewModels;
 
-/// <summary>下载页：版本清单与安装。</summary>
+/// <summary>下载页：按"正式版 / 快照版 / 预览版 / 远古版"分区列出全部版本，并可进入安装二级页面。</summary>
 public partial class DownloadPageViewModel : PageViewModelBase
 {
-
     private readonly AppServices _services;
     private readonly AppState _state;
+    private readonly ILauncherHost _host;
 
     /// <summary>构造下载页。</summary>
-    public DownloadPageViewModel(AppServices services, AppState state)
-        : base("下载", "从官方 / 镜像获取版本清单，补齐文件到 ACL 数据目录。")
+    public DownloadPageViewModel(AppServices services, AppState state, ILauncherHost host)
+        : base("下载", "获取全部版本（正式版 / 快照版 / 预览版 / 远古版），选中后进入安装页面配置加载器。")
     {
         _services = services;
         _state = state;
+        _host = host;
+        RefreshCommand = new AsyncRelayCommand(RefreshAsync);
+        OpenInstallCommand = new RelayCommand<VersionRowViewModel>(row =>
+        {
+            if (row is not null)
+            {
+                _state.SelectedVersion = row;
+                _host.OpenInstallPage(row);
+            }
+        });
     }
 
-    /// <summary>共享状态。</summary>
-    public AppState State => _state;
+    /// <summary>分类筛选项。</summary>
+    public ObservableCollection<string> KindFilters { get; } = ["全部", "正式版", "快照版", "预览版", "远古版"];
 
-    /// <summary>全量版本列表（共享自 <see cref="AppState"/>）。</summary>
+    /// <summary>当前分类。</summary>
+    [ObservableProperty]
+    private string _kindFilter = "正式版";
 
-    public ObservableCollection<VersionRowViewModel> Versions => _state.Versions;
-
-    /// <summary>筛选后的列表（绑定到界面）。</summary>
-    public ObservableCollection<VersionRowViewModel> Filtered { get; } = [];
-
-    /// <summary>类型筛选项。</summary>
-    public ObservableCollection<string> KindFilters { get; } = ["全部", "正式版", "快照"];
-
-    /// <summary>关键字筛选。</summary>
+    /// <summary>关键字。</summary>
     [ObservableProperty]
     private string _filter = string.Empty;
 
-    /// <summary>类型筛选。</summary>
+    /// <summary>筛选后的列表。</summary>
+    public ObservableCollection<VersionRowViewModel> Filtered { get; } = [];
+
+    /// <summary>状态文本。</summary>
     [ObservableProperty]
-    private string _kindFilter = "全部";
+    private string _status = "点击“刷新版本清单”获取全部版本。";
+
+    /// <summary>分类计数文本。</summary>
+    [ObservableProperty]
+    private string _counts = string.Empty;
+
+    /// <summary>安装目标目录提示。</summary>
+    public string GameDirectory => _services.GameDirectory;
+
+    /// <summary>刷新命令。</summary>
+    public ICommand RefreshCommand { get; }
+
+    /// <summary>进入安装页面命令。</summary>
+    public ICommand OpenInstallCommand { get; }
 
     partial void OnFilterChanged(string value) => ApplyFilter();
-
     partial void OnKindFilterChanged(string value) => ApplyFilter();
 
-    /// <summary>按筛选条件重建列表，并检测本地是否已安装。</summary>
+    /// <summary>重建列表。</summary>
     public void ApplyFilter()
     {
         Filtered.Clear();
         string keyword = Filter.Trim();
         foreach (VersionRowViewModel row in _state.Versions)
         {
+            if (KindFilter != "全部" && row.CategoryLabel != KindFilter)
+            {
+                continue;
+            }
+
             if (keyword.Length > 0 && !row.Id.Contains(keyword, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            if (KindFilter switch
-                {
-                    "正式版" => row.Type != "release",
-                    "快照" => row.Type != "snapshot",
-                    _ => false,
-                })
-            {
-                continue;
-            }
-
-            row.Install = InstallCommand;
-            row.IsInstalled = _services.FileSystem.FileExists(
-                Path.Combine(_services.GameDirectory, "versions", row.Id, row.Id + ".jar"));
+            row.OpenInstall = OpenInstallCommand;
             Filtered.Add(row);
         }
+
+        Counts = $"共 {_state.Versions.Count} 个版本 · 正式版 {Count("正式版")} / 快照 {Count("快照版")} / 预览 {Count("预览版")} / 远古 {Count("远古版")}";
     }
 
-    /// <summary>状态。</summary>
-    [ObservableProperty]
-    private string _status = "点击“刷新”获取版本清单。";
+    private int Count(string category) => _state.Versions.Count(row => row.CategoryLabel == category);
 
-    /// <summary>进度。</summary>
-    [ObservableProperty]
-    private double _progress;
-
-    /// <summary>安装目标目录提示。</summary>
-    public string GameDirectory => _services.GameDirectory;
-
-    /// <summary>刷新版本清单。</summary>
-    [RelayCommand]
     private async Task RefreshAsync()
     {
         if (IsBusy)
@@ -102,9 +103,8 @@ public partial class DownloadPageViewModel : PageViewModelBase
         Status = "正在获取版本清单…";
         try
         {
-            string summary = await VersionLoader.LoadIntoAsync(_services, _state).ConfigureAwait(true);
+            Status = await VersionLoader.LoadIntoAsync(_services, _state).ConfigureAwait(true);
             ApplyFilter();
-            Status = summary;
         }
         catch (Exception ex)
         {
@@ -116,75 +116,6 @@ public partial class DownloadPageViewModel : PageViewModelBase
         }
     }
 
-    /// <summary>安装所选版本（补齐客户端 / 库 / 资源索引）。</summary>
-    [RelayCommand]
-    private async Task InstallAsync(VersionRowViewModel? row)
-    {
-        if (IsBusy || row is null)
-        {
-            return;
-        }
-
-        IsBusy = true;
-        Status = $"准备安装 {row.Id}…";
-        Progress = 0;
-        try
-        {
-            MetadataFetcher fetcher = new(_services.Http);
-            Result<VersionManifest> manifest = await _services.Versions.GetManifestAsync().ConfigureAwait(true);
-            VersionEntry? entry = manifest.IsSuccess
-                ? manifest.Value!.Versions.FirstOrDefault(v => v.Id == row.Id)
-                : null;
-            if (entry is null)
-            {
-                Status = "未找到版本条目。";
-                return;
-            }
-
-            Result<string> body = await fetcher.FetchStringAsync([entry.Url]).ConfigureAwait(true);
-            if (!body.IsSuccess)
-            {
-                Status = $"读取版本 JSON 失败：{body.Code}";
-                return;
-            }
-
-            Result<VersionJson> parsed = VersionJsonParser.Parse(body.Value!);
-            if (!parsed.IsSuccess)
-            {
-                Status = $"解析版本 JSON 失败：{parsed.Code}";
-                return;
-            }
-
-            InstallTargets targets = InstallTargets.ForGameDir(_services.GameDirectory);
-            InstallPlan plan = new VersionPlanner().Plan(parsed.Value!, targets, OsSpecForCurrent());
-            UiProgressSink sink = new(report =>
-            {
-                Progress = report.Fraction;
-                Status = $"{row.Id} · {report.Stage}";
-            });
-
-            Result<IReadOnlyList<DownloadOutcome>> result = await _services.Download
-                .DownloadManyAsync(plan.Downloads, 0, sink)
-                .ConfigureAwait(true);
-
-            Status = result.IsSuccess
-                ? $"已补齐 {row.Id}（{plan.Downloads.Count} 项）。"
-                : $"安装失败：{result.Code}";
-            _state.SelectedVersionId = row.Id;
-            ApplyFilter();   // 刷新“已安装”标记
-        }
-        catch (Exception ex)
-        {
-            Status = $"安装失败：{ex.GetType().Name}";
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    private static OsSpec OsSpecForCurrent()
-        => OperatingSystem.IsWindows() ? OsSpec.WindowsX64
-            : OperatingSystem.IsMacOS() ? OsSpec.MacOsX64
-            : OsSpec.LinuxX64;
+    /// <summary>页面激活时调用。</summary>
+    public void OnActivated() => ApplyFilter();
 }

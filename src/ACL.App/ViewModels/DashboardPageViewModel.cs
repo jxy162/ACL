@@ -61,16 +61,7 @@ public partial class DashboardPageViewModel : PageViewModelBase
         TotalMinutes = _state.PlayMinutes.Values.Sum();
         VersionCount = _state.Versions.Count;
 
-        int installed = 0;
-        foreach (VersionRowViewModel row in _state.Versions)
-        {
-            if (_services.FileSystem.FileExists(Path.Combine(_services.GameDirectory, "versions", row.Id, row.Id + ".jar")))
-            {
-                installed++;
-            }
-        }
-
-        InstalledCount = installed;
+        InstalledCount = _state.Instances.Count;
         OnPropertyChanged(nameof(EnvironmentText));
 
         GameExitInfo? exit = _state.LastExit;

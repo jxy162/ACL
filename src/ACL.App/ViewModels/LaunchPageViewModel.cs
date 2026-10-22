@@ -1,313 +1,193 @@
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 using ACL.App.Services;
-using ACL.Application;
 using ACL.Core.Abstractions;
-using ACL.Core.Domain;
-using ACL.Core.Java;
-using ACL.Core.Launch;
 using ACL.Core.Version;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace ACL.App.ViewModels;
 
-/// <summary>启动页。</summary>
+/// <summary>
+/// 启动页：直接按版本列表选择版本，本机已安装即可启动；
+/// 未安装则跳转到"安装"二级页面。这里不再有"启动计划"。
+/// </summary>
 public partial class LaunchPageViewModel : PageViewModelBase
 {
-
     private readonly AppServices _services;
     private readonly AppState _state;
+    private readonly ILauncherHost _host;
 
     /// <summary>构造启动页。</summary>
-    public LaunchPageViewModel(AppServices services, AppState state)
-        : base("启动", "选择版本与账号，生成启动计划并启动游戏。")
+    public LaunchPageViewModel(AppServices services, AppState state, ILauncherHost host)
+        : base("启动", "选择版本 → 启动；未安装的版本会引导到安装页面配置加载器。")
     {
         _services = services;
         _state = state;
+        _host = host;
+
+        LaunchSelectedCommand = new AsyncRelayCommand(LaunchSelectedAsync, () => CanLaunchSelected);
+        InstallSelectedCommand = new RelayCommand(InstallSelected, () => _state.SelectedVersion is not null);
+        LaunchInstanceCommand = new AsyncRelayCommand<string>(id => id is null ? Task.CompletedTask : _host.LaunchInstanceAsync(id));
+        RefreshCommand = new AsyncRelayCommand(RefreshAsync);
+
+        _state.Instances.CollectionChanged += (_, _) => ApplyFilter();
+        _state.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(AppState.SelectedVersionId) or nameof(AppState.SelectedVersion))
+            {
+                OnPropertyChanged(nameof(HeroTitle));
+                OnPropertyChanged(nameof(HeroSubtitle));
+                OnPropertyChanged(nameof(CanLaunchSelected));
+                LaunchSelectedCommand.NotifyCanExecuteChanged();
+                InstallSelectedCommand.NotifyCanExecuteChanged();
+            }
+        };
     }
+
+    /// <summary>共享状态。</summary>
+    public AppState State => _state;
+
+    /// <summary>筛选后的版本列表。</summary>
+    public ObservableCollection<VersionRowViewModel> Versions { get; } = [];
+
+    /// <summary>本机已安装实例（快捷启动）。</summary>
+    public ObservableCollection<InstalledInstanceRow> LocalInstances { get; } = [];
+
+    /// <summary>是否有本机实例。</summary>
+    public bool HasLocalInstances => LocalInstances.Count > 0;
+
+    /// <summary>分类筛选。</summary>
+    public ObservableCollection<string> Categories { get; } = ["全部", "正式版", "快照版", "预览版", "远古版"];
+
+    /// <summary>当前分类。</summary>
+    [ObservableProperty]
+    private string _category = "全部";
+
+    /// <summary>关键字。</summary>
+    [ObservableProperty]
+    private string _search = string.Empty;
+
+    /// <summary>Hero 标题。</summary>
+    public string HeroTitle => string.IsNullOrWhiteSpace(_state.SelectedVersionId) ? "未选择版本" : _state.SelectedVersionId!;
+
+    /// <summary>Hero 副标题。</summary>
+    public string HeroSubtitle => _state.SelectedVersion is { } row
+        ? $"{row.CategoryLabel} · 发布于 {row.Released}" + (row.IsInstalled ? " · 已安装" : " · 尚未安装")
+        : "从右侧版本列表中选择一个版本";
+
+    /// <summary>选中版本是否可启动。</summary>
+    public bool CanLaunchSelected => _state.SelectedVersion is { IsInstalled: true };
 
     /// <summary>状态文本。</summary>
     [ObservableProperty]
-    private string _status = "就绪";
+    private string _status = "正在准备版本列表…";
 
-    /// <summary>进度（0-1）。</summary>
-    [ObservableProperty]
-    private double _progress;
+    /// <summary>启动选中版本命令。</summary>
+    public IAsyncRelayCommand LaunchSelectedCommand { get; }
 
-    /// <summary>计划摘要。</summary>
-    [ObservableProperty]
-    private string _planSummary = "尚未生成计划。";
+    /// <summary>安装选中版本命令。</summary>
+    public IRelayCommand InstallSelectedCommand { get; }
 
-    /// <summary>共享状态（账号 / 版本 / 设置）。</summary>
-    public AppState State => _state;
+    /// <summary>启动实例命令。</summary>
+    public ICommand LaunchInstanceCommand { get; }
 
-    /// <summary>Hero 中的大号版本标题。</summary>
+    /// <summary>刷新版本清单命令。</summary>
+    public ICommand RefreshCommand { get; }
 
-    public string VersionTitle => string.IsNullOrEmpty(_state.SelectedVersionId) ? "未选择版本" : _state.SelectedVersionId!;
-
-    /// <summary>版本摘要。</summary>
-
-    public string VersionSummary => string.IsNullOrEmpty(_state.SelectedVersionId)
-        ? "版本：未选择"
-        : $"版本：{_state.SelectedVersionId}";
-
-    /// <summary>账号摘要。</summary>
-    public string AccountSummary => $"账号：{_state.PlayerName}（离线）";
-
-    /// <summary>Java 摘要。</summary>
-    public string JavaSummary => string.IsNullOrEmpty(_state.SelectedJavaHome)
-        ? "尚未探测（到“设置”页探测）"
-        : _state.SelectedJavaHome!;
-
-    /// <summary>游戏目录摘要。</summary>
-    public string GameDirectorySummary => _services.GameDirectory;
-
-    /// <summary>内存摘要。</summary>
-    public string MemorySummary => $"{(int)_state.MinMemoryMb} - {(int)_state.MaxMemoryMb} MB";
-
-    /// <summary>日志。</summary>
-
-    public ObservableCollection<string> Log { get; } = [];
-
-    /// <summary>生成启动计划（dry-run）。</summary>
+    /// <summary>版本选择命令（列表点击即选中）。</summary>
     [RelayCommand]
-    private async Task PlanAsync()
+    private void Select(VersionRowViewModel? row)
     {
-        if (IsBusy)
+        if (row is not null)
         {
-            return;
-        }
+            _state.SelectedVersion = row;
+            OnPropertyChanged(nameof(HeroTitle));
+            OnPropertyChanged(nameof(HeroSubtitle));
+            OnPropertyChanged(nameof(CanLaunchSelected));
+            LaunchSelectedCommand.NotifyCanExecuteChanged();
+            InstallSelectedCommand.NotifyCanExecuteChanged();
 
-        IsBusy = true;
-        Status = "正在读取版本清单…";
-        Log.Clear();
-        try
-        {
-            string versionId = string.IsNullOrWhiteSpace(_state.SelectedVersionId)
-                ? (await GetDefaultVersionAsync().ConfigureAwait(true) ?? string.Empty)
-                : _state.SelectedVersionId!;
-
-            if (string.IsNullOrEmpty(versionId))
+            // 选中即在本机实例中定位。
+            if (row.IsInstalled)
             {
-                Status = "未找到可用版本，请先在“下载”页刷新。";
-                return;
+                _ = _host;
             }
-
-            Result<VersionJson> version = await LoadVersionAsync(versionId).ConfigureAwait(true);
-            if (!version.IsSuccess)
-            {
-                Status = $"读取版本失败：{version.Code}";
-                return;
-            }
-
-            InstallTargets targets = InstallTargets.ForGameDir(_services.GameDirectory);
-            InstallPlan plan = new VersionPlanner().Plan(version.Value!, targets, CurrentOs());
-            long total = plan.Downloads.Sum(item => item.Size ?? 0);
-
-            _state.SelectedVersionId = versionId;
-            PlanSummary = $"版本 {versionId}：需补齐 {plan.Downloads.Count} 项，约 {total / 1024 / 1024} MB";
-            Status = "计划已生成（尚未下载文件）。";
-            Log.Add($"[plan] {PlanSummary}");
-            foreach (string warning in plan.Warnings)
-            {
-                Log.Add($"[warn] {warning}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Status = $"生成计划失败：{ex.GetType().Name}";
-            Log.Add($"[error] {ex.Message}");
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 
-    /// <summary>安装并启动（会下载缺失文件）。</summary>
-    [RelayCommand]
-    private async Task InstallAndLaunchAsync()
+    partial void OnCategoryChanged(string value) => ApplyFilter();
+    partial void OnSearchChanged(string value) => ApplyFilter();
+
+    /// <summary>重建列表。</summary>
+    public void ApplyFilter()
     {
-        if (IsBusy)
+        Versions.Clear();
+        string keyword = Search.Trim();
+        foreach (VersionRowViewModel row in _state.Versions)
         {
-            return;
+            if (Category != "全部" && row.CategoryLabel != Category)
+            {
+                continue;
+            }
+
+            if (keyword.Length > 0 && !row.Id.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            row.Install = InstallSelectedCommand;
+            Versions.Add(row);
         }
 
-        IsBusy = true;
-        Status = "准备中…";
-        Log.Add($"[1/4] 读取版本 JSON：{_state.SelectedVersionId ?? "未选择"}");
-        try
+        LocalInstances.Clear();
+        foreach (InstalledInstance instance in _state.Instances)
         {
-            string versionId = _state.SelectedVersionId ?? string.Empty;
-            if (string.IsNullOrEmpty(versionId))
+            LocalInstances.Add(new InstalledInstanceRow(instance, LaunchInstanceCommand, new RelayCommand(() => { }))
             {
-                Status = "请先生成计划以确定版本。";
-                return;
-            }
-
-            Result<VersionJson> version = await LoadVersionAsync(versionId).ConfigureAwait(true);
-            if (!version.IsSuccess)
-            {
-                Status = $"读取版本失败：{version.Code}";
-                return;
-            }
-
-            Log.Add("[2/4] 选择 Java 运行时…");
-            JavaRuntime? java = await ResolveJavaAsync(version.Value!).ConfigureAwait(true);
-            if (java is null)
-            {
-                Status = "未找到合适的 Java（需要 64 位且版本满足要求）。";
-                return;
-            }
-
-            AuthSession session = OfflineIdentity.CreateSession(_state.PlayerName);
-            InstallTargets targets = InstallTargets.ForGameDir(_services.GameDirectory);
-            LaunchSettings settings = new()
-            {
-                GameDirectory = _services.GameDirectory,
-                AssetsRoot = targets.AssetsDir,
-                AssetIndexId = version.Value!.AssetIndex?.Id ?? "legacy",
-                NativesDirectory = Path.Combine(targets.VersionsDir, versionId, "natives"),
-                LibrariesDirectory = targets.LibrariesDir,
-                MinMemoryMb = (int)_state.MinMemoryMb,
-                MaxMemoryMb = (int)_state.MaxMemoryMb,
-            };
-
-            LaunchRequest request = new(
-                versionId,
-                version.Value!,
-                targets,
-                java,
-                session,
-                settings,
-                CurrentOs());
-
-            LaunchOrchestrator orchestrator = new(
-                _services.Download,
-                _services.Natives,
-                _services.LaunchPlanner,
-                _services.Monitor,
-                _services.FileSystem);
-
-            Log.Add("[3/4] 补齐文件 → 解压 natives → 启动进程…");
-            string lastStage = string.Empty;
-            UiProgressSink sink = new(report =>
-            {
-                Progress = report.Fraction;
-                Status = report.Stage;
-                if (!string.Equals(report.Stage, lastStage, StringComparison.Ordinal))
-                {
-                    lastStage = report.Stage;
-                    if (Log.Count < 200)
-                    {
-                        Log.Add($"[进度] {report.Stage} {report.Fraction:P0}");
-                    }
-                }
+                PlayMinutes = _state.GetPlayMinutes(instance.Id),
             });
-
-            Result<GameExitInfo> result = await orchestrator
-                .RunAsync(request, null, sink)
-                .ConfigureAwait(true);
-
-            if (result.IsSuccess)
-            {
-                GameExitInfo exit = result.Value!;
-                _state.AddPlayMinutes(versionId, exit.Duration.TotalMinutes);
-                _state.SetLastExit(exit);
-                PersistLog(exit.LogTail);
-                Status = $"游戏已退出：{exit.State}（{exit.Reason}），本次 {exit.Duration.TotalMinutes:F1} 分钟";
-            }
-            else
-            {
-                Status = $"启动失败：{result.Code}";
-            }
-
-            Log.Add($"[4/4] {Status}");
         }
-        catch (OperationCanceledException)
+
+        OnPropertyChanged(nameof(HasLocalInstances));
+    }
+
+    private async Task LaunchSelectedAsync()
+    {
+        if (_state.SelectedVersionId is { Length: > 0 } id && CanLaunchSelected)
         {
-            Status = "已取消";
-            Log.Add("[4/4] 已取消");
+            await _host.LaunchInstanceAsync(id).ConfigureAwait(true);
+        }
+    }
+
+    private void InstallSelected()
+    {
+        if (_state.SelectedVersion is { } row)
+        {
+            _host.OpenInstallPage(row);
+        }
+    }
+
+    private async Task RefreshAsync()
+    {
+        Status = "正在获取版本清单…";
+        try
+        {
+            Status = await VersionLoader.LoadIntoAsync(_services, _state).ConfigureAwait(true);
+            ApplyFilter();
+            _state.RequestToast(Status);
         }
         catch (Exception ex)
         {
-            Status = $"启动失败：{ex.GetType().Name}";
-            Log.Add($"[error] {ex.Message}");
-        }
-        finally
-        {
-            IsBusy = false;
+            Status = $"刷新失败：{ex.GetType().Name}";
         }
     }
 
-    private void PersistLog(string? logTail)
+    /// <summary>页面激活时调用。</summary>
+    public void OnActivated()
     {
-        if (string.IsNullOrEmpty(logTail))
-        {
-            return;
-        }
-
-        try
-        {
-            _services.FileSystem.CreateDirectory(_services.LogDirectory);
-            string path = Path.Combine(_services.LogDirectory, "last-launch.log");
-            using Stream stream = _services.FileSystem.OpenWrite(path, append: false);
-            using StreamWriter writer = new(stream, new System.Text.UTF8Encoding(false));
-            writer.Write(logTail);
-            _state.LastLogPath = path;
-        }
-        catch (IOException)
-        {
-            // 日志落盘失败不影响启动流程。
-        }
-    }
-
-    private async Task<string?> GetDefaultVersionAsync()
-    {
-        Result<VersionManifest> manifest = await _services.Versions.GetManifestAsync().ConfigureAwait(true);
-        return manifest.IsSuccess ? manifest.Value!.Latest.Release : null;
-    }
-
-    private Task<Result<VersionJson>> LoadVersionAsync(string versionId)
-        => VersionResolver.ResolveAsync(versionId, (id, _) => LoadRawAsync(id), CancellationToken.None);
-
-    private async Task<Result<VersionJson>> LoadRawAsync(string versionId)
-    {
-        Result<VersionManifest> manifest = await _services.Versions.GetManifestAsync().ConfigureAwait(true);
-        if (!manifest.IsSuccess)
-        {
-            return Result<VersionJson>.Failure(manifest.Code, manifest.Detail);
-        }
-
-        VersionEntry? entry = manifest.Value!.Versions
-            .FirstOrDefault(v => string.Equals(v.Id, versionId, StringComparison.OrdinalIgnoreCase));
-        if (entry is null)
-        {
-            return Result<VersionJson>.Failure(ErrorCode.NotFound, versionId);
-        }
-
-        MetadataFetcher fetcher = new(_services.Http);
-        Result<string> body = await fetcher.FetchStringAsync([entry.Url]).ConfigureAwait(true);
-        return body.IsSuccess
-            ? VersionJsonParser.Parse(body.Value!)
-            : Result<VersionJson>.Failure(body.Code, body.Detail);
-    }
-
-    private async Task<JavaRuntime?> ResolveJavaAsync(VersionJson version)
-    {
-        IReadOnlyList<JavaRuntime> runtimes = await _services.JavaLocator.LocateAsync().ConfigureAwait(true);
-        int major = version.JavaVersion?.MajorVersion ?? 8;
-        JavaRequirement requirement = new(new JavaVersionRange(new System.Version(major, 0, 0)));
-        return new JavaSelector().Select(runtimes, requirement);
-    }
-
-    private static OsSpec CurrentOs()
-    {
-        if (OperatingSystem.IsWindows())
-        {
-            return OsSpec.WindowsX64;
-        }
-
-        return OperatingSystem.IsMacOS() ? OsSpec.MacOsX64 : OsSpec.LinuxX64;
+        ApplyFilter();
+        OnPropertyChanged(nameof(HeroTitle));
+        OnPropertyChanged(nameof(HeroSubtitle));
     }
 }

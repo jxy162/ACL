@@ -43,6 +43,21 @@ public partial class MainWindow : Window
         base.OnDataContextChanged(e);
         if (DataContext is MainWindowViewModel vm)
         {
+            vm.State.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(AppState.IsLaunching))
+                {
+                    if (vm.State.IsLaunching)
+                    {
+                        PlayLaunchEntrance();
+                    }
+                    else
+                    {
+                        LaunchOverlay.Opacity = 0d;
+                    }
+                }
+            };
+
             vm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(MainWindowViewModel.IsDialogVisible))
@@ -83,6 +98,12 @@ public partial class MainWindow : Window
         DialogBackdrop.Opacity = 0d;
         DialogCard.Opacity = 0d;
         DialogCard.RenderTransform = Avalonia.Media.Transformation.TransformOperations.Parse("translate(0px,26px) scale(0.96)");
+    }
+
+    /// <summary>启动动画进场：淡入 + 轻微放大（由声明式 Transitions 完成，可打断）。</summary>
+    private void PlayLaunchEntrance()
+    {
+        LaunchOverlay.Opacity = 1d;
     }
 
     /// <summary>轻提示进场：淡入 + 上移。</summary>

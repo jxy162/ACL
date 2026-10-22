@@ -69,9 +69,11 @@ public partial class SettingsPageViewModel : PageViewModelBase
             PreferOfficialMirror = State.PreferOfficial,
             PlayerName = State.PlayerName,
             SelectedVersionId = State.SelectedVersionId,
+            CurrentAccountId = State.CurrentAccount?.Id,
             Theme = State.Theme,
             ReduceMotion = State.ReduceMotion,
             PlayMinutes = new Dictionary<string, double>(State.PlayMinutes, StringComparer.Ordinal),
+            Instances = new Dictionary<string, InstanceSettings>(State.InstanceSettings, StringComparer.Ordinal),
         };
 
         Result saved = _services.Settings.Save(settings);

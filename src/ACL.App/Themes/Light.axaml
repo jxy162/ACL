@@ -21,6 +21,7 @@
   <SolidColorBrush x:Key="AclDarkCardBrush" Color="#F2FFFFFF" />
   <SolidColorBrush x:Key="AclDarkStrokeBrush" Color="#33202B45" />
   <SolidColorBrush x:Key="AclGhostBrush" Color="#14202B45" />
+  <SolidColorBrush x:Key="AclLaunchBackdropBrush" Color="#F2F2F5FA" />
   <!-- M3 角色令牌（Expressive） -->
   <SolidColorBrush x:Key="AclOnPrimary" Color="#FFFFFFFF" />
   <SolidColorBrush x:Key="AclPrimaryContainer" Color="#DCE1FF" />

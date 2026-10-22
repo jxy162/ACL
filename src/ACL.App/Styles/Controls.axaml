@@ -250,4 +250,77 @@
     </Setter>
   </Style>
 
+  <!-- 账号行（离线 / 正版列表） -->
+  <Style Selector="Button.AclAccountRow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="10,8" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Foreground" Value="{DynamicResource AclTextBrush}" />
+  </Style>
+
+  <Style Selector="Button.AclAccountRow /template/ ContentPresenter">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.16" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Button.AclAccountRow:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclStateLayerHover}" />
+  </Style>
+
+  <Style Selector="Button.AclAccountRow.current /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclSecondaryContainer}" />
+  </Style>
+
+  <!-- 行内小图标按钮 -->
+  <Style Selector="Button.AclIconGhost">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Width" Value="26" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button.AclIconGhost /template/ ContentPresenter">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.14" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Button.AclIconGhost:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclDangerBrush}" />
+  </Style>
+
+  <Style Selector="Button.AclIconGhost:pointerover Path">
+    <Setter Property="Fill" Value="#FFFFFF" />
+  </Style>
+
+  <!-- 启动动画覆盖层 -->
+  <Style Selector="Border.AclLaunchOverlay">
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.26" Easing="QuinticEaseOut" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <!-- 启动动画进度条 -->
+  <Style Selector="ProgressBar.AclProgress">
+    <Setter Property="Background" Value="{DynamicResource AclOutlineVariant}" />
+    <Setter Property="Foreground" Value="{DynamicResource AclPrimaryBrush}" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
 </Styles>

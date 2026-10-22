@@ -2,70 +2,108 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ACL.App.ViewModels"
              xmlns:controls="using:ACL.App.Controls"
+             xmlns:domain="using:ACL.Core.Domain"
              x:Class="ACL.App.App"
              RequestedThemeVariant="Dark">
 
   <Application.DataTemplates>
 
-    <!-- 启动页左栏：可交互（账号 / 版本 / Java） -->
-    <DataTemplate DataType="vm:AccountLeftPanelViewModel">
-      <StackPanel Spacing="12">
-        <Border Classes="AclCard hoverable" Padding="18">
-          <StackPanel Spacing="12">
-            <StackPanel Orientation="Horizontal" Spacing="12">
-              <Border Width="44" Height="44" CornerRadius="999" Background="{DynamicResource AclPrimaryBrush}">
-                <TextBlock Text="{Binding State.AvatarLetter}" Foreground="{DynamicResource AclOnPrimary}" FontSize="19"
-                           FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-              </Border>
-              <StackPanel VerticalAlignment="Center" Spacing="2">
-                <TextBlock Text="{Binding State.PlayerName}" Classes="AclSection" />
-                <TextBlock Text="{Binding State.AccountStatus}" Classes="AclCaption" />
+    <!-- ===== 账号面板（离线 / 正版分开 + 多账号） ===== -->
+    <DataTemplate DataType="vm:AccountPanelViewModel">
+      <ScrollViewer>
+        <StackPanel Spacing="12">
+          <Border Classes="AclCard" Padding="18">
+            <StackPanel Spacing="10">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <Border Width="46" Height="46" CornerRadius="999" Background="{DynamicResource AclPrimaryBrush}">
+                  <TextBlock Text="{Binding State.AvatarLetter}" Foreground="{DynamicResource AclOnPrimary}"
+                             FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                  <TextBlock Text="{Binding State.PlayerName}" Classes="AclSection" />
+                  <TextBlock Text="{Binding State.AccountStatus}" Classes="AclCaption" TextWrapping="Wrap" />
+                </StackPanel>
               </StackPanel>
             </StackPanel>
-            <TextBox Text="{Binding State.PlayerName}" Watermark="玩家名（离线）" />
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-              <Button Grid.Column="0" Classes="AclPrimary" Content="离线登录" HorizontalAlignment="Stretch"
-                      HorizontalContentAlignment="Center" Command="{Binding $parent[Window].DataContext.LoginOfflineCommand}" />
-              <Button Grid.Column="1" Classes="AclGhost" Content="正版登录" HorizontalAlignment="Stretch"
-                      HorizontalContentAlignment="Center" Command="{Binding $parent[Window].DataContext.LoginMicrosoftCommand}"
-                      IsEnabled="{Binding !State.IsAuthenticating}" />
-            </Grid>
-            <TextBlock Text="{Binding State.DeviceCodeText}" Classes="AclCaption" TextWrapping="Wrap"
-                       IsVisible="{Binding State.DeviceCodeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-          </StackPanel>
-        </Border>
+          </Border>
 
-        <Border Classes="AclCard hoverable" Padding="18">
-          <StackPanel Spacing="10">
-            <TextBlock Text="游戏版本" Classes="AclSection" />
-            <ComboBox ItemsSource="{Binding State.Versions}" SelectedItem="{Binding State.SelectedVersion}" HorizontalAlignment="Stretch">
-              <ComboBox.ItemTemplate>
-                <DataTemplate DataType="vm:VersionRowViewModel">
-                  <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="{Binding Id}" />
-                    <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" Classes="AclCaption" Margin="10,0,0,0" />
-                  </Grid>
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-            <Button Classes="AclGhost" Content="刷新版本清单" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                    Command="{Binding $parent[Window].DataContext.RefreshVersionsCommand}" />
-            <TextBlock Text="{Binding $parent[Window].DataContext.VersionStatus}" Classes="AclCaption" TextWrapping="Wrap" />
-          </StackPanel>
-        </Border>
+          <!-- 正版账号 -->
+          <Border Classes="AclCard" Padding="16">
+            <StackPanel Spacing="10">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Data="M8,1.6 L14.4,4 V8.2 C14.4,11.6 11.6,14 8,14.4 C4.4,14 1.6,11.6 1.6,8.2 V4 Z"
+                      Width="14" Height="14" Stretch="Uniform" Fill="{DynamicResource AclSecondaryTextBrush}" />
+                <TextBlock Text="正版账号" Classes="AclSection" />
+              </StackPanel>
+              <ItemsControl ItemsSource="{Binding PremiumAccounts}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:AccountRowViewModel">
+                    <Button Classes="AclAccountRow" Classes.current="{Binding IsCurrent}"
+                            Command="{Binding ActivateCommand}" CommandParameter="{Binding}">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Border Grid.Column="0" Width="30" Height="30" CornerRadius="999"
+                                Background="{DynamicResource AclSecondaryContainer}">
+                          <TextBlock Text="{Binding AvatarLetter}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding Name}" FontSize="13.5" />
+                          <TextBlock Text="{Binding TypeLabel}" Classes="AclCaption" />
+                        </StackPanel>
+                        <Button Grid.Column="2" Classes="AclIconGhost" ToolTip.Tip="删除该账号"
+                                Command="{Binding DeleteCommand}" CommandParameter="{Binding}">
+                          <Path Data="{DynamicResource AclIconClose}" Width="11" Height="11" Stretch="Uniform" />
+                        </Button>
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="尚未登录正版账号" Classes="AclCaption" IsVisible="{Binding !HasPremium}" />
+              <Button Classes="AclPrimary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                      Content="正版登录（自动打开网页）" IsEnabled="{Binding !State.IsAuthenticating}"
+                      Command="{Binding LoginMicrosoftCommand}" />
+            </StackPanel>
+          </Border>
 
-        <Border Classes="AclCard hoverable" Padding="18">
-          <StackPanel Spacing="6">
-            <TextBlock Text="Java" Classes="AclSection" />
-            <TextBlock Text="{Binding State.SelectedJavaHome, TargetNullValue=尚未探测, FallbackValue=尚未探测}"
-                       Classes="AclCaption" TextWrapping="Wrap" />
-            <TextBlock Text="在“设置”页探测本机运行时" Classes="AclCaption" />
-          </StackPanel>
-        </Border>
-      </StackPanel>
+          <!-- 离线账号 -->
+          <Border Classes="AclCard" Padding="16">
+            <StackPanel Spacing="10">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Data="{DynamicResource AclIconGrid}" Width="14" Height="14" Stretch="Uniform"
+                      Fill="{DynamicResource AclSecondaryTextBrush}" />
+                <TextBlock Text="离线账号" Classes="AclSection" />
+              </StackPanel>
+              <ItemsControl ItemsSource="{Binding OfflineAccounts}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:AccountRowViewModel">
+                    <Button Classes="AclAccountRow" Classes.current="{Binding IsCurrent}"
+                            Command="{Binding ActivateCommand}" CommandParameter="{Binding}">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Border Grid.Column="0" Width="30" Height="30" CornerRadius="999"
+                                Background="{DynamicResource AclSecondaryContainer}">
+                          <TextBlock Text="{Binding AvatarLetter}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13.5" VerticalAlignment="Center" />
+                        <Button Grid.Column="2" Classes="AclIconGhost" ToolTip.Tip="删除该账号"
+                                Command="{Binding DeleteCommand}" CommandParameter="{Binding}">
+                          <Path Data="{DynamicResource AclIconClose}" Width="11" Height="11" Stretch="Uniform" />
+                        </Button>
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="尚未创建离线账号" Classes="AclCaption" IsVisible="{Binding !HasOffline}" />
+              <TextBox Text="{Binding NewOfflineName}" Watermark="玩家名（最长 16 字符）" />
+              <Button Classes="AclGhost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                      Content="新建离线账号" Command="{Binding CreateOfflineCommand}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
     </DataTemplate>
 
-    <!-- 其他页面左栏：页面专属信息 + 操作 -->
+    <!-- ===== 通用左栏 ===== -->
     <DataTemplate DataType="vm:LeftPanelViewModel">
       <ScrollViewer>
         <StackPanel Spacing="12">
@@ -92,131 +130,144 @@
           <ItemsControl ItemsSource="{Binding Actions}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:LeftPanelAction">
-                <Button Classes="AclGhost" Content="{Binding Label}" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center" Margin="0,3"
-                        Command="{Binding Command}" CommandParameter="{Binding Parameter}" />
+                <Button Classes="AclGhost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,0,8"
+                        Content="{Binding Label}" Command="{Binding Command}" CommandParameter="{Binding Parameter}" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-
-          <TextBlock Text="{Binding Hint}" Classes="AclCaption" TextWrapping="Wrap"
-                     IsVisible="{Binding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </ScrollViewer>
     </DataTemplate>
-
-    <!-- 启动页 -->
+    <!-- ===== 启动页 ===== -->
     <DataTemplate DataType="vm:LaunchPageViewModel">
-      <controls:SmoothScrollViewer>
-        <StackPanel Spacing="12">
-          <Border Classes="AclCard" Padding="30">
-            <Grid ColumnDefinitions="*,Auto">
-              <StackPanel Spacing="6" VerticalAlignment="Center">
-                <TextBlock Text="{Binding State.VersionTitle}" FontSize="34" FontWeight="Bold"
-                           Foreground="{DynamicResource AclTextBrush}" />
-                <TextBlock Text="{Binding State.AccountBadge}" Classes="AclCaption" />
+      <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+        <Border Grid.Row="0" Classes="AclCard" Padding="28">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="6" VerticalAlignment="Center">
+              <TextBlock Text="{Binding HeroTitle}" FontSize="34" FontWeight="Bold" Foreground="{DynamicResource AclTextBrush}" />
+              <TextBlock Text="{Binding HeroSubtitle}" Classes="AclCaption" />
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+                <Border Classes="AclBadge"><TextBlock Text="{Binding State.AccountBadge}" Classes="AclCaption" /></Border>
+                <Border Classes="AclBadge"><TextBlock Text="{Binding State.VersionBadge}" Classes="AclCaption" /></Border>
               </StackPanel>
-              <Button Grid.Column="1" Classes="AclPrimary" Padding="30,13" FontSize="15" VerticalAlignment="Center"
-                      Command="{Binding PlanCommand}">
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+              <Button Classes="AclPrimary" Padding="34,14" FontSize="15" Command="{Binding LaunchSelectedCommand}">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <Path Data="{DynamicResource AclIconPlay}" Width="13" Height="13" Stretch="Uniform" Fill="#FFFFFF" />
-                  <TextBlock Text="开始游戏" />
+                  <TextBlock Text="启动游戏" />
                 </StackPanel>
               </Button>
+              <Button Classes="AclGhost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                      Content="安装 / 加载器配置" Command="{Binding InstallSelectedCommand}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,300" ColumnSpacing="12">
+          <Border Grid.Column="0" Classes="AclCard" Padding="14">
+            <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
+              <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                <ComboBox ItemsSource="{Binding Categories}" SelectedItem="{Binding Category}" MinWidth="110" />
+                <TextBox Text="{Binding Search}" Watermark="搜索版本（如 1.20）" MinWidth="160" />
+                <Button Classes="AclGhost" Command="{Binding RefreshCommand}">
+                  <StackPanel Orientation="Horizontal" Spacing="7">
+                    <Path Data="{DynamicResource AclIconRefresh}" Width="13" Height="13" Stretch="Uniform" />
+                    <TextBlock Text="刷新清单" />
+                  </StackPanel>
+                </Button>
+              </StackPanel>
+              <TextBlock Grid.Row="1" Text="{Binding State.VersionTitle, StringFormat='当前选择：{0}'}" Classes="AclCaption" />
+              <ListBox Grid.Row="2" Classes="AclVersionList" ItemsSource="{Binding Versions}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate DataType="vm:VersionRowViewModel">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
+                      <Border Grid.Column="0" Classes="AclBadge" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding CategoryLabel}" Classes="AclCaption" />
+                      </Border>
+                      <TextBlock Grid.Column="1" Text="{Binding Id}" Classes="AclBody" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="2" Text="{Binding Released}" Classes="AclCaption" VerticalAlignment="Center" />
+                      <Border Grid.Column="3" Classes="AclBadge" VerticalAlignment="Center" IsVisible="{Binding IsInstalled}">
+                        <TextBlock Text="已安装" Classes="AclCaption" />
+                      </Border>
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
             </Grid>
           </Border>
 
-          <Border Classes="AclCard" Padding="22">
-            <StackPanel Spacing="10">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="AclBadge"><TextBlock Text="{Binding State.VersionBadge}" Classes="AclCaption" /></Border>
-                <Border Classes="AclBadge"><TextBlock Text="{Binding State.AccountBadge}" Classes="AclCaption" /></Border>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Classes="AclPrimary" Padding="28,12" FontSize="14" Content="生成启动计划" Command="{Binding PlanCommand}" />
-                <Button Classes="AclGhost" Padding="24,12" FontSize="14" Content="安装并启动" Command="{Binding InstallAndLaunchCommand}" />
-              </StackPanel>
-              <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="6" />
-              <TextBlock Text="{Binding Status}" Classes="AclCaption" />
-            </StackPanel>
+          <Border Grid.Column="1" Classes="AclCard" Padding="14">
+            <Grid RowDefinitions="Auto,*" RowSpacing="10">
+              <TextBlock Grid.Row="0" Text="本机已安装" Classes="AclSection" />
+              <ScrollViewer Grid.Row="1">
+                <StackPanel Spacing="8">
+                  <ItemsControl ItemsSource="{Binding LocalInstances}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="vm:InstalledInstanceRow">
+                        <Button Classes="AclAccountRow" Command="{Binding StartCommand}" CommandParameter="{Binding}">
+                          <StackPanel Spacing="3">
+                            <TextBlock Text="{Binding Id}" FontSize="13.5" />
+                            <TextBlock Text="{Binding LoaderLabel, StringFormat='加载器：{0}'}" Classes="AclCaption" />
+                            <TextBlock Text="{Binding PlayText, StringFormat='游玩时长：{0}'}" Classes="AclCaption" />
+                          </StackPanel>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Text="还没有本机实例，可在“下载”页安装。" Classes="AclCaption" TextWrapping="Wrap"
+                             IsVisible="{Binding !HasLocalInstances}" />
+                </StackPanel>
+              </ScrollViewer>
+            </Grid>
           </Border>
+        </Grid>
 
-          <Border Classes="AclCard" Padding="24">
-            <StackPanel Spacing="10">
-              <TextBlock Text="快速上手" Classes="AclSection" />
-              <TextBlock Text="1. 在左侧“游戏版本”下拉里选择版本（首次请点“刷新版本清单”）。" Classes="AclBody" TextWrapping="Wrap" />
-              <TextBlock Text="2. 点“启动游戏”生成启动计划；点“安装并启动”补齐文件并启动。" Classes="AclBody" TextWrapping="Wrap" />
-              <TextBlock Text="3. 下载与设置页可分别管理文件补齐、内存与 Java。" Classes="AclBody" TextWrapping="Wrap" />
-            </StackPanel>
-          </Border>
-
-          <Border Classes="AclCard" Padding="22">
-            <StackPanel Spacing="8">
-              <TextBlock Text="运行环境" Classes="AclSection" />
-              <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Java" Classes="AclCaption" />
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding State.SelectedJavaHome, TargetNullValue=尚未探测（到“设置”页探测）, FallbackValue=尚未探测（到“设置”页探测）}" Classes="AclBody" TextWrapping="Wrap" />
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="游戏目录" Classes="AclCaption" />
-                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding GameDirectorySummary}" Classes="AclBody" TextWrapping="Wrap" />
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="内存" Classes="AclCaption" />
-                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MemorySummary}" Classes="AclBody" />
-              </Grid>
-            </StackPanel>
-          </Border>
-
-          <Border Classes="AclCard" Padding="20">
-            <StackPanel Spacing="8">
-              <TextBlock Text="计划" Classes="AclSection" />
-              <TextBlock Text="{Binding PlanSummary}" Classes="AclBody" TextWrapping="Wrap" />
-              <TextBlock Text="日志" Classes="AclSection" Margin="0,6,0,0" />
-              <ItemsControl ItemsSource="{Binding Log}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding}" FontSize="12" FontFamily="Cascadia Mono,Consolas,monospace"
-                               Foreground="{DynamicResource AclMutedTextBrush}" TextWrapping="Wrap" />
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </StackPanel>
-          </Border>
-        </StackPanel>
-      </controls:SmoothScrollViewer>
+        <Border Grid.Row="2" Classes="AclCard" Padding="16">
+          <TextBlock Text="{Binding Status}" Classes="AclCaption" TextWrapping="Wrap" />
+        </Border>
+      </Grid>
     </DataTemplate>
-
-    <!-- 游戏列表页 -->
+    <!-- ===== 游戏列表 ===== -->
     <DataTemplate DataType="vm:GameListPageViewModel">
       <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
         <Border Grid.Row="0" Classes="AclCard" Padding="24">
           <StackPanel Spacing="10">
             <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
             <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
-            <CheckBox Content="仅显示已安装" IsChecked="{Binding InstalledOnly}" Foreground="{DynamicResource AclTextBrush}" />
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <TextBox Text="{Binding Filter}" Watermark="搜索实例名" MinWidth="200" />
+              <Button Classes="AclGhost" Command="{Binding RescanCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <Path Data="{DynamicResource AclIconRefresh}" Width="13" Height="13" Stretch="Uniform" />
+                  <TextBlock Text="重新扫描本机" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
             <TextBlock Text="{Binding Status}" Classes="AclCaption" TextWrapping="Wrap" />
           </StackPanel>
         </Border>
 
         <Border Grid.Row="1" Classes="AclCard" Padding="18">
-          <TextBlock Text="“启动”会切到主页并生成该版本的启动计划；游玩时长在每次游戏退出后累加并保存。"
+          <TextBlock Text="本机实例即游戏：直接启动；“设置”可为该实例单独指定 Java、内存与 JVM 参数。"
                      Classes="AclCaption" TextWrapping="Wrap" />
         </Border>
 
         <Border Grid.Row="2" Classes="AclCard" Padding="10">
-          <ListBox Classes="AclVersionList" ItemsSource="{Binding Rows}" MaxHeight="400">
+          <ListBox Classes="AclVersionList" ItemsSource="{Binding Rows}">
             <ListBox.ItemTemplate>
-              <DataTemplate DataType="vm:VersionRowViewModel">
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="12">
+              <DataTemplate DataType="vm:InstalledInstanceRow">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="12">
                   <Border Grid.Column="0" Classes="AclBadge" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding TypeLabel}" Classes="AclCaption" />
+                    <TextBlock Text="{Binding LoaderLabel}" Classes="AclCaption" />
                   </Border>
                   <TextBlock Grid.Column="1" Text="{Binding Id}" Classes="AclBody" VerticalAlignment="Center" />
-                  <Border Grid.Column="2" Classes="AclBadge" VerticalAlignment="Center" IsVisible="{Binding IsInstalled}">
-                    <TextBlock Text="已安装" Classes="AclCaption" />
-                  </Border>
-                  <TextBlock Grid.Column="3" Text="{Binding PlayText}" Classes="AclCaption" VerticalAlignment="Center" MinWidth="60" />
-                  <Button Grid.Column="4" Classes="AclGhost" VerticalAlignment="Center"
-                          Command="{Binding Start}" CommandParameter="{Binding}">
+                  <TextBlock Grid.Column="2" Text="{Binding InstalledText}" Classes="AclCaption" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding PlayText}" Classes="AclCaption" VerticalAlignment="Center" MinWidth="56" />
+                  <Button Grid.Column="4" Classes="AclGhost" Command="{Binding SettingsCommand}" CommandParameter="{Binding}" Content="设置" />
+                  <Button Grid.Column="5" Classes="AclPrimary" Command="{Binding StartCommand}" CommandParameter="{Binding}">
                     <StackPanel Orientation="Horizontal" Spacing="7">
-                      <Path Data="{DynamicResource AclIconPlay}" Width="11" Height="11" Stretch="Uniform" />
+                      <Path Data="{DynamicResource AclIconPlay}" Width="11" Height="11" Stretch="Uniform" Fill="#FFFFFF" />
                       <TextBlock Text="启动" />
                     </StackPanel>
                   </Button>
@@ -227,7 +278,8 @@
         </Border>
       </Grid>
     </DataTemplate>
-    <!-- 下载页 -->
+
+    <!-- ===== 下载（全部分类） ===== -->
     <DataTemplate DataType="vm:DownloadPageViewModel">
       <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
         <Border Grid.Row="0" Classes="AclCard" Padding="24">
@@ -246,32 +298,31 @@
               <ComboBox ItemsSource="{Binding KindFilters}" SelectedItem="{Binding KindFilter}" MinWidth="110" />
               <TextBox Text="{Binding Filter}" Watermark="搜索版本（如 1.20）" MinWidth="200" />
             </StackPanel>
-            <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="6" />
-            <TextBlock Text="{Binding Status}" Classes="AclCaption" />
+            <TextBlock Text="{Binding Counts}" Classes="AclCaption" />
+            <TextBlock Text="{Binding Status}" Classes="AclCaption" TextWrapping="Wrap" />
           </StackPanel>
         </Border>
 
         <Border Grid.Row="1" Classes="AclCard" Padding="18">
-          <TextBlock Text="选择版本后点击右侧“安装”，将把客户端 / 库 / 资源索引补齐到上面的目录。"
+          <TextBlock Text="点击任意版本的“安装”进入二级页面：可在其中配置 Forge / NeoForge / Fabric / Quilt / OptiFine / Iris 前置安装。"
                      Classes="AclCaption" TextWrapping="Wrap" />
         </Border>
 
         <Border Grid.Row="2" Classes="AclCard" Padding="10">
-          <ListBox Classes="AclVersionList" ItemsSource="{Binding Filtered}" MaxHeight="360">
+          <ListBox Classes="AclVersionList" ItemsSource="{Binding Filtered}">
             <ListBox.ItemTemplate>
               <DataTemplate DataType="vm:VersionRowViewModel">
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="12">
                   <Border Grid.Column="0" Classes="AclBadge" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding TypeLabel}" Classes="AclCaption" />
+                    <TextBlock Text="{Binding CategoryLabel}" Classes="AclCaption" />
                   </Border>
                   <TextBlock Grid.Column="1" Text="{Binding Id}" Classes="AclBody" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="2" Text="{Binding Released}" Classes="AclCaption" VerticalAlignment="Center" />
-                  <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Border Classes="AclBadge" IsVisible="{Binding IsInstalled}">
-                      <TextBlock Text="已安装" Classes="AclCaption" />
-                    </Border>
-                    <Button Classes="AclGhost" Content="安装" Command="{Binding Install}" CommandParameter="{Binding}" />
-                  </StackPanel>
+                  <Border Grid.Column="3" Classes="AclBadge" VerticalAlignment="Center" IsVisible="{Binding IsInstalled}">
+                    <TextBlock Text="已安装" Classes="AclCaption" />
+                  </Border>
+                  <Button Grid.Column="4" Classes="AclPrimary" Content="安装"
+                          Command="{Binding OpenInstall}" CommandParameter="{Binding}" />
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -279,40 +330,307 @@
         </Border>
       </Grid>
     </DataTemplate>
+    <!-- ===== 安装二级页面 ===== -->
+    <DataTemplate DataType="vm:InstallPageViewModel">
+      <controls:SmoothScrollViewer>
+        <StackPanel Spacing="12">
+          <Border Classes="AclCard" Padding="26">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
+                <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
+              </StackPanel>
+              <Button Grid.Column="1" Classes="AclGhost" Content="返回下载页" Command="{Binding BackCommand}" VerticalAlignment="Center" />
+            </Grid>
+          </Border>
 
-    <!-- 设置页 -->
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="12">
+              <TextBlock Text="前置安装" Classes="AclSection" />
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <StackPanel Spacing="6" MinWidth="200">
+                  <TextBlock Text="加载器" Classes="AclCaption" />
+                  <ComboBox ItemsSource="{Binding LoaderKinds}" SelectedItem="{Binding LoaderKind}" HorizontalAlignment="Stretch" />
+                </StackPanel>
+                <StackPanel Spacing="6" MinWidth="260" IsVisible="{Binding NeedsLoaderVersion}">
+                  <TextBlock Text="加载器版本" Classes="AclCaption" />
+                  <ComboBox ItemsSource="{Binding LoaderVersions}" SelectedItem="{Binding SelectedLoaderVersion}"
+                            HorizontalAlignment="Stretch" IsEnabled="{Binding !IsLoadingLoaders}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate DataType="domain:LoaderOffer">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                          <TextBlock Text="{Binding Label}" />
+                          <TextBlock Grid.Column="1" Text="{Binding Note}" Classes="AclCaption" />
+                        </Grid>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </StackPanel>
+                <StackPanel Spacing="6" MinWidth="240">
+                  <TextBlock Text="实例名" Classes="AclCaption" />
+                  <TextBox Text="{Binding InstanceName}" />
+                </StackPanel>
+              </StackPanel>
+
+              <TextBlock Text="{Binding KindHint}" Classes="AclBody" TextWrapping="Wrap" />
+
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Classes="AclGhost" Content="探测 Java" Command="{Binding DetectJavaCommand}" />
+                <TextBox Text="{Binding SelectedJavaHome}" Watermark="Java 主目录（Forge / NeoForge 必填）" MinWidth="320" />
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Classes="AclPrimary" Command="{Binding InstallCommand}">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Path Data="{DynamicResource AclIconDownload}" Width="13" Height="13" Stretch="Uniform" Fill="#FFFFFF" />
+                    <TextBlock Text="开始安装" />
+                  </StackPanel>
+                </Button>
+                <Button Classes="AclGhost" Content="启动已安装实例" Command="{Binding LaunchCommand}" />
+              </StackPanel>
+
+              <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="6" />
+              <TextBlock Text="{Binding Status}" Classes="AclCaption" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="20">
+            <StackPanel Spacing="8">
+              <TextBlock Text="安装日志" Classes="AclSection" />
+              <ItemsControl ItemsSource="{Binding Log}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding}" FontSize="12" FontFamily="Cascadia Mono,Consolas,monospace"
+                               Foreground="{DynamicResource AclMutedTextBrush}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </controls:SmoothScrollViewer>
+    </DataTemplate>
+
+    <!-- ===== 实例设置二级页面 ===== -->
+    <DataTemplate DataType="vm:InstanceSettingsPageViewModel">
+      <controls:SmoothScrollViewer>
+        <StackPanel Spacing="12">
+          <Border Classes="AclCard" Padding="26">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
+                <TextBlock Text="{Binding Details}" Classes="AclCaption" TextWrapping="Wrap" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Classes="AclGhost" Content="返回列表" Command="{Binding BackCommand}" />
+                <Button Classes="AclPrimary" Content="启动" Command="{Binding LaunchCommand}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="10">
+              <TextBlock Text="内存" Classes="AclSection" />
+              <TextBlock Text="{Binding MaxMemory, StringFormat='最大堆：{0:F0} MB'}" Classes="AclCaption" />
+              <Slider Minimum="512" Maximum="32768" TickFrequency="512" Value="{Binding MaxMemory}" />
+              <TextBlock Text="{Binding MinMemory, StringFormat='最小堆：{0:F0} MB'}" Classes="AclCaption" Margin="0,6,0,0" />
+              <Slider Minimum="256" Maximum="8192" TickFrequency="256" Value="{Binding MinMemory}" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="10">
+              <TextBlock Text="Java" Classes="AclSection" />
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Classes="AclGhost" Content="探测本机 Java" Command="{Binding DetectJavaCommand}" />
+                <Button Classes="AclGhost" Content="改回自动选择" Command="{Binding ClearJavaCommand}" />
+              </StackPanel>
+              <TextBox Text="{Binding JavaPath}" Watermark="java 可执行文件路径（留空自动选择）" />
+              <TextBlock Text="{Binding EffectiveJava, StringFormat='当前生效：{0}'}" Classes="AclCaption" TextWrapping="Wrap" />
+              <ItemsControl ItemsSource="{Binding JavaCandidates}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding}" FontSize="12" FontFamily="Cascadia Mono,Consolas,monospace"
+                               Foreground="{DynamicResource AclMutedTextBrush}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="10">
+              <TextBlock Text="高级" Classes="AclSection" />
+              <TextBox Text="{Binding ExtraJvmArgs}" Watermark="附加 JVM 参数（空格分隔）" />
+              <TextBox Text="{Binding ExtraGameArgs}" Watermark="附加游戏参数（空格分隔）" />
+              <TextBox Text="{Binding WorkingDir}" Watermark="自定义工作目录（留空使用游戏根目录）" />
+              <TextBox Text="{Binding Note}" Watermark="备注" />
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Classes="AclPrimary" Content="保存设置" Command="{Binding SaveCommand}" />
+              </StackPanel>
+              <TextBlock Text="{Binding Status}" Classes="AclCaption" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </controls:SmoothScrollViewer>
+    </DataTemplate>
+    <!-- ===== 资源页 ===== -->
+    <DataTemplate DataType="vm:ResourcePageViewModel">
+      <controls:SmoothScrollViewer>
+        <StackPanel Spacing="12">
+          <Border Classes="AclCard" Padding="24">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
+              <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding Source}" MinWidth="120" />
+                <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="110" />
+                <ComboBox ItemsSource="{Binding Loaders}" SelectedItem="{Binding Loader}" MinWidth="110" />
+                <ComboBox ItemsSource="{Binding Sorts}" SelectedItem="{Binding Sort}" MinWidth="110" />
+                <TextBox Text="{Binding GameVersion}" Watermark="游戏版本（如 1.20.1）" MinWidth="130" />
+                <TextBox Text="{Binding Query}" Watermark="关键字" MinWidth="180" />
+                <Button Classes="AclPrimary" Command="{Binding SearchCommand}">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Path Data="{DynamicResource AclIconRefresh}" Width="13" Height="13" Stretch="Uniform" Fill="#FFFFFF" />
+                    <TextBlock Text="搜索" />
+                  </StackPanel>
+                </Button>
+              </StackPanel>
+              <TextBlock Text="{Binding KeyHint}" Classes="AclCaption" TextWrapping="Wrap" />
+              <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="6" />
+              <TextBlock Text="{Binding Status}" Classes="AclCaption" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="20">
+            <StackPanel Spacing="10">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="推荐资源" Classes="AclSection" />
+                <Button Grid.Column="1" Classes="AclGhost" Content="加载推荐" Command="{Binding LoadRecommendedCommand}" />
+              </Grid>
+              <TextBlock Text="{Binding RecommendedStatus}" Classes="AclCaption" TextWrapping="Wrap" />
+              <ItemsControl ItemsSource="{Binding Recommended}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:ResourceRowViewModel">
+                    <Border Classes="AclDarkCard" Padding="12" Margin="0,0,0,8">
+                      <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10" ClipToBounds="True"
+                                Background="{DynamicResource AclSecondaryContainer}">
+                          <Image Source="{Binding Icon}" Stretch="UniformToFill" Width="40" Height="40" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding Title}" Classes="AclBody" />
+                          <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" MaxHeight="34" />
+                          <TextBlock Text="{Binding Author, StringFormat='作者：{0}'}" Classes="AclCaption" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="{Binding Downloads, StringFormat='{}{0} 次下载'}" Classes="AclCaption" VerticalAlignment="Center" />
+                        <Button Grid.Column="3" Classes="AclPrimary" Content="安装"
+                                Command="{Binding Install}" CommandParameter="{Binding}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="20">
+            <StackPanel Spacing="10">
+              <TextBlock Text="搜索结果" Classes="AclSection" />
+              <ItemsControl ItemsSource="{Binding Results}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:ResourceRowViewModel">
+                    <Border Classes="AclDarkCard" Padding="12" Margin="0,0,0,8">
+                      <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10" ClipToBounds="True"
+                                Background="{DynamicResource AclSecondaryContainer}">
+                          <Image Source="{Binding Icon}" Stretch="UniformToFill" Width="40" Height="40" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding Title}" Classes="AclBody" />
+                          <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" MaxHeight="34" />
+                          <TextBlock Text="{Binding Status}" Classes="AclCaption" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="{Binding Downloads, StringFormat='{}{0} 次下载'}" Classes="AclCaption" VerticalAlignment="Center" />
+                        <Button Grid.Column="3" Classes="AclPrimary" Content="安装"
+                                Command="{Binding Install}" CommandParameter="{Binding}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </controls:SmoothScrollViewer>
+    </DataTemplate>
+    <!-- ===== 仪表板 ===== -->
+    <DataTemplate DataType="vm:DashboardPageViewModel">
+      <controls:SmoothScrollViewer>
+        <StackPanel Spacing="12">
+          <Border Classes="AclCard" Padding="24">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
+              <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding EnvironmentText}" Classes="AclCaption" TextWrapping="Wrap"
+                         Foreground="{DynamicResource AclSecondaryTextBrush}" />
+              <Button Classes="AclGhost" Content="刷新统计" HorizontalAlignment="Left" Command="{Binding RefreshCommand}" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="8">
+              <TextBlock Text="统计" Classes="AclSection" />
+              <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="版本总数" Classes="AclCaption" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding VersionCount}" Classes="AclBody" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="已安装实例" Classes="AclCaption" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding InstalledCount}" Classes="AclBody" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="累计游玩" Classes="AclCaption" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalMinutes, StringFormat='{}{0:F1} 分钟'}" Classes="AclBody" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="22">
+            <StackPanel Spacing="8">
+              <TextBlock Text="最近一次运行" Classes="AclSection" />
+              <TextBlock Text="{Binding LastExitText}" Classes="AclBody" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding LastReasonText, StringFormat='归因：{0}'}" Classes="AclCaption" TextWrapping="Wrap" />
+              <TextBlock Text="日志尾部" Classes="AclSection" Margin="0,6,0,0" />
+              <TextBlock Text="{Binding LastLogTail}" FontSize="12" FontFamily="Cascadia Mono,Consolas,monospace"
+                         Foreground="{DynamicResource AclMutedTextBrush}" TextWrapping="Wrap" MaxHeight="220" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </controls:SmoothScrollViewer>
+    </DataTemplate>
+
+    <!-- ===== 设置 ===== -->
     <DataTemplate DataType="vm:SettingsPageViewModel">
       <controls:SmoothScrollViewer>
         <StackPanel Spacing="12">
           <Border Classes="AclCard" Padding="24">
-            <StackPanel Spacing="6">
+            <StackPanel Spacing="10">
               <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
               <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
-            </StackPanel>
-          </Border>
-
-          <Border Classes="AclCard" Padding="22">
-            <StackPanel Spacing="10">
-              <TextBlock Text="外观" Classes="AclSection" />
               <TextBlock Text="{Binding ThemeText}" Classes="AclCaption" />
-              <StackPanel Orientation="Horizontal" Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="10">
                 <Button Classes="AclGhost" Content="深色" Command="{Binding UseDarkThemeCommand}" />
                 <Button Classes="AclGhost" Content="浅色" Command="{Binding UseLightThemeCommand}" />
+                <CheckBox Content="减弱动效" IsChecked="{Binding State.ReduceMotion}" />
               </StackPanel>
-              <CheckBox Content="减弱动效（减少位移与时长）" IsChecked="{Binding State.ReduceMotion}" />
             </StackPanel>
           </Border>
 
           <Border Classes="AclCard" Padding="22">
             <StackPanel Spacing="10">
-              <TextBlock Text="启动" Classes="AclSection" />
-              <TextBlock Text="最大内存" Classes="AclCaption" />
+              <TextBlock Text="默认启动参数（全局；实例可单独覆盖）" Classes="AclSection" />
+              <TextBlock Text="{Binding State.MaxMemoryMb, StringFormat='最大内存：{0:F0} MB'}" Classes="AclCaption" />
               <Slider Minimum="512" Maximum="32768" TickFrequency="512" Value="{Binding State.MaxMemoryMb}" />
-              <TextBlock Text="{Binding State.MaxMemoryMb, StringFormat='{}{0:F0} MB'}" Classes="AclCaption" />
-              <TextBlock Text="最小内存" Classes="AclCaption" Margin="0,4,0,0" />
+              <TextBlock Text="{Binding State.MinMemoryMb, StringFormat='最小内存：{0:F0} MB'}" Classes="AclCaption" Margin="0,6,0,0" />
               <Slider Minimum="256" Maximum="8192" TickFrequency="256" Value="{Binding State.MinMemoryMb}" />
-              <TextBlock Text="{Binding State.MinMemoryMb, StringFormat='{}{0:F0} MB'}" Classes="AclCaption" />
-              <TextBlock Text="玩家名（离线登录）" Classes="AclCaption" Margin="0,4,0,0" />
+              <TextBlock Text="未登录时的离线玩家名" Classes="AclCaption" Margin="0,6,0,0" />
               <TextBox Text="{Binding State.PlayerName}" />
             </StackPanel>
           </Border>
@@ -320,8 +638,7 @@
           <Border Classes="AclCard" Padding="22">
             <StackPanel Spacing="10">
               <TextBlock Text="网络" Classes="AclSection" />
-              <CheckBox Content="优先使用官方源（关闭则镜像优先：BMCLAPI）" IsChecked="{Binding State.PreferOfficial}"
-                        Foreground="{DynamicResource AclTextBrush}" />
+              <CheckBox Content="优先使用官方源（关闭则镜像优先：BMCLAPI）" IsChecked="{Binding State.PreferOfficial}" />
               <TextBlock Text="下载支持多源回退、断点续传与限速（内核已实现）。" Classes="AclCaption" TextWrapping="Wrap" />
             </StackPanel>
           </Border>
@@ -343,7 +660,8 @@
                                Foreground="{DynamicResource AclMutedTextBrush}" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
-              </ItemsControl>              <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+              </ItemsControl>
+              <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
                 <Button Classes="AclPrimary" Content="保存设置" Command="{Binding SaveSettingsCommand}" />
               </StackPanel>
               <TextBlock Text="{Binding SettingsStatus}" Classes="AclCaption" TextWrapping="Wrap" />
@@ -354,7 +672,7 @@
 
           <Border Classes="AclCard" Padding="22">
             <StackPanel Spacing="6">
-              <TextBlock Text="目录（便携式）" Classes="AclSection" />
+              <TextBlock Text="目录（便携式：与启动器同目录）" Classes="AclSection" />
               <TextBlock Text="{Binding DataDirectory}" FontSize="12" FontFamily="Cascadia Mono,Consolas,monospace"
                          Foreground="{DynamicResource AclSecondaryTextBrush}" TextWrapping="Wrap" />
               <TextBlock Text="{Binding GameDirectory}" FontSize="12" FontFamily="Cascadia Mono,Consolas,monospace"
@@ -364,143 +682,24 @@
         </StackPanel>
       </controls:SmoothScrollViewer>
     </DataTemplate>
-    <!-- 仪表板页 -->
-    <DataTemplate DataType="vm:DashboardPageViewModel">
+
+    <!-- ===== 更多 ===== -->
+    <DataTemplate DataType="vm:MorePageViewModel">
       <controls:SmoothScrollViewer>
         <StackPanel Spacing="12">
           <Border Classes="AclCard" Padding="24">
-            <StackPanel Spacing="10">
-              <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
-              <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding EnvironmentText}" Classes="AclCaption" TextWrapping="Wrap"
-                         Foreground="{DynamicResource AclSecondaryTextBrush}" />
-              <Button Classes="AclGhost" Content="刷新统计" HorizontalAlignment="Left" Command="{Binding RefreshCommand}" />
-            </StackPanel>
-          </Border>
-
-          <Border Classes="AclCard" Padding="22">
-            <StackPanel Spacing="12">
-              <TextBlock Text="统计" Classes="AclSection" />
-              <Grid ColumnDefinitions="*,*,*">
-                <StackPanel Spacing="2">
-                  <TextBlock Text="累计游玩" Classes="AclCaption" />
-                  <TextBlock Text="{Binding TotalMinutes, StringFormat='{}{0:F1} 分钟'}" Classes="AclSection" />
-                </StackPanel>
-                <StackPanel Grid.Column="1" Spacing="2">
-                  <TextBlock Text="版本总数" Classes="AclCaption" />
-                  <TextBlock Text="{Binding VersionCount}" Classes="AclSection" />
-                </StackPanel>
-                <StackPanel Grid.Column="2" Spacing="2">
-                  <TextBlock Text="已安装" Classes="AclCaption" />
-                  <TextBlock Text="{Binding InstalledCount}" Classes="AclSection" />
-                </StackPanel>
-              </Grid>
-            </StackPanel>
-          </Border>
-
-          <Border Classes="AclCard" Padding="22">
-            <StackPanel Spacing="10">
-              <TextBlock Text="最近一次运行" Classes="AclSection" />
-              <TextBlock Text="{Binding LastExitText}" Classes="AclBody" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding LastReasonText}" Classes="AclCaption" TextWrapping="Wrap" />
-              <Button Classes="AclGhost" Content="打开日志目录" HorizontalAlignment="Left" Command="{Binding OpenLogDirectoryCommand}" />
-              <TextBlock Text="{Binding LogDirectory}" FontSize="12" FontFamily="Cascadia Mono,Consolas,monospace"
-                         Foreground="{DynamicResource AclSecondaryTextBrush}" TextWrapping="Wrap" />
-              <TextBlock Text="日志尾部" Classes="AclCaption" Margin="0,6,0,0" />
-              <TextBox Text="{Binding LastLogTail}" IsReadOnly="True" AcceptsReturn="True" MaxHeight="140"
-                       FontFamily="Cascadia Mono,Consolas,monospace" FontSize="12" TextWrapping="Wrap" />
+            <StackPanel Spacing="8">
+              <TextBlock Text="{Binding ProductName}" Classes="AclPageTitle" />
+              <TextBlock Text="{Binding AppVersion}" Classes="AclCaption" />
+              <TextBlock Text="{Binding KernelNote}" Classes="AclBody" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Notice}" Classes="AclCaption" TextWrapping="Wrap" />
+              <Button Classes="AclGhost" Content="打开数据目录" HorizontalAlignment="Left" Command="{Binding OpenDataDirectoryCommand}" />
             </StackPanel>
           </Border>
         </StackPanel>
       </controls:SmoothScrollViewer>
     </DataTemplate>
-    <!-- 更多页 -->
-    <DataTemplate DataType="vm:MorePageViewModel">
-      <StackPanel Spacing="12">
-        <Border Classes="AclCard" Padding="26">
-          <StackPanel Spacing="10">
-            <StackPanel Orientation="Horizontal" Spacing="14">
-              <Image Source="/Assets/logo-256.png" Width="56" Height="56" />
-              <StackPanel VerticalAlignment="Center" Spacing="2">
-                <TextBlock Text="{Binding ProductName}" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AclTextBrush}" />
-                <TextBlock Text="{Binding AppVersion}" Classes="AclCaption" />
-              </StackPanel>
-            </StackPanel>
-            <TextBlock Text="{Binding KernelNote}" Classes="AclBody" TextWrapping="Wrap" Margin="0,6,0,0" />
-            <TextBlock Text="{Binding Notice}" Classes="AclCaption" TextWrapping="Wrap" />
-            <Button Classes="AclPrimary" Content="打开游戏目录" Command="{Binding OpenDataDirectoryCommand}"
-                    HorizontalAlignment="Left" Margin="0,8,0,0" />
-          </StackPanel>
-        </Border>
-      </StackPanel>
-    </DataTemplate>
 
-    <!-- 资源页 -->
-    <DataTemplate DataType="vm:ResourcePageViewModel">
-      <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
-        <Border Grid.Row="0" Classes="AclCard" Padding="24">
-          <StackPanel Spacing="10">
-            <TextBlock Text="{Binding Title}" Classes="AclPageTitle" />
-            <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" />
-            <TextBlock Text="{Binding KeyHint}" Classes="AclCaption" TextWrapping="Wrap"
-                       Foreground="{DynamicResource AclSecondaryTextBrush}" />
-            <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8" Margin="0,4,0,0">
-              <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding Source}" MinWidth="130" />
-              <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="110" />
-              <ComboBox ItemsSource="{Binding Loaders}" SelectedItem="{Binding Loader}" MinWidth="110" />
-              <ComboBox ItemsSource="{Binding Sorts}" SelectedItem="{Binding Sort}" MinWidth="110" />
-              <TextBox Text="{Binding GameVersion}" Watermark="游戏版本" MinWidth="120" />
-              <CheckBox Content="仅当前版本" IsChecked="{Binding MatchCurrentVersion}" Foreground="{DynamicResource AclTextBrush}" VerticalAlignment="Center" />
-              <TextBox Text="{Binding Query}" Watermark="关键字（如 sodium，回车搜索）" MinWidth="200">
-                <TextBox.KeyBindings>
-                  <KeyBinding Gesture="Enter" Command="{Binding SearchCommand}" />
-                </TextBox.KeyBindings>
-              </TextBox>
-              <Button Classes="AclPrimary" Command="{Binding SearchCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Path Data="{DynamicResource AclIconGrid}" Width="14" Height="14" Stretch="Uniform" Fill="#FFFFFF" />
-                  <TextBlock Text="搜索" />
-                </StackPanel>
-              </Button>
-            </WrapPanel>
-            <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="5" />
-            <TextBlock Text="{Binding Status}" Classes="AclCaption" />
-          </StackPanel>
-        </Border>
-
-        <Border Grid.Row="1" Classes="AclCard" Padding="18">
-          <TextBlock Text="安装位置：Mod → mods/　资源包 → resourcepacks/　光影 → shaderpacks/　数据包 → datapacks/（均位于便携游戏目录下）"
-                     Classes="AclCaption" TextWrapping="Wrap" />
-        </Border>
-
-        <Border Grid.Row="2" Classes="AclCard" Padding="10">
-          <ListBox Classes="AclVersionList" ItemsSource="{Binding Results}" MaxHeight="380">
-            <ListBox.ItemTemplate>
-              <DataTemplate DataType="vm:ResourceRowViewModel">
-                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                  <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" VerticalAlignment="Center"
-                          Background="{DynamicResource AclBadgeBrush}">
-                    <Image Source="{Binding Icon}" Stretch="UniformToFill" />
-                  </Border>
-                  <StackPanel Grid.Column="1" Spacing="4">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="{Binding Title}" Classes="AclBody" FontWeight="SemiBold" />
-                      <Border Classes="AclBadge"><TextBlock Text="{Binding Downloads}" Classes="AclCaption" /></Border>
-                    </StackPanel>
-                    <TextBlock Text="{Binding Author}" Classes="AclCaption" />
-                    <TextBlock Text="{Binding Description}" Classes="AclCaption" TextWrapping="Wrap" MaxWidth="620" />
-                  </StackPanel>
-                  <StackPanel Grid.Column="2" Spacing="6" VerticalAlignment="Center">
-                    <Button Classes="AclGhost" Content="安装" Command="{Binding Install}" CommandParameter="{Binding}" />
-                    <TextBlock Text="{Binding Status}" Classes="AclCaption" HorizontalAlignment="Center" />
-                  </StackPanel>
-                </Grid>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-        </Border>
-      </Grid>
-    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>

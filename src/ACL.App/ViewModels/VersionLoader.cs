@@ -5,11 +5,11 @@ using ACL.Core.Version;
 
 namespace ACL.App.ViewModels;
 
-/// <summary>版本清单加载（侧栏与下载页共用）。</summary>
+/// <summary>版本清单加载（下载页 / 启动页 / 侧栏共用）。</summary>
 public static class VersionLoader
 {
-    /// <summary>加载并写入共享状态；返回状态文本。</summary>
-    public static async Task<string> LoadIntoAsync(AppServices services, AppState state, int limit = 60)
+    /// <summary>加载全部版本并写入共享状态；返回状态文本。</summary>
+    public static async Task<string> LoadIntoAsync(AppServices services, AppState state)
     {
         Result<VersionManifest> manifest = await services.Versions.GetManifestAsync().ConfigureAwait(true);
         if (!manifest.IsSuccess)
@@ -17,13 +17,20 @@ public static class VersionLoader
             return $"获取版本清单失败：{manifest.Code}（{manifest.Detail}）";
         }
 
+        HashSet<string> installed = [.. state.Instances.Select(instance => instance.Id)];
         state.Versions.Clear();
-        foreach (VersionEntry entry in manifest.Value!.Versions.Take(limit))
+        foreach (VersionEntry entry in manifest.Value!.Versions)
         {
-            state.Versions.Add(new VersionRowViewModel(entry.Id, entry.Type, entry.ReleaseTime));
+            state.Versions.Add(new VersionRowViewModel(entry.Id, entry.Type, entry.ReleaseTime)
+            {
+                IsInstalled = installed.Contains(entry.Id),
+            });
         }
 
         state.SelectedVersion ??= state.Versions.FirstOrDefault(v => v.Type == "release") ?? state.Versions.FirstOrDefault();
-        return $"共 {manifest.Value.Versions.Count} 个版本（显示前 {state.Versions.Count} 个）";
+        return $"已加载 {state.Versions.Count} 个版本（正式版 {Count(state, VersionCategory.Release)}，快照 {Count(state, VersionCategory.Snapshot)}，预览 {Count(state, VersionCategory.Preview)}，远古 {Count(state, VersionCategory.Ancient)}）";
     }
+
+    private static int Count(AppState state, string category)
+        => state.Versions.Count(row => row.Category == category);
 }
