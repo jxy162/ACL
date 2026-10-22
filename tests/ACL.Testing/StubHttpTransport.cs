@@ -2,16 +2,23 @@ using ACL.Core.Abstractions;
 
 namespace ACL.Testing;
 
-/// <summary>可编程的 HTTP 传输桩。</summary>
+/// <summary>可编程的 HTTP 传输桩（支持同步与异步处理器）。</summary>
 public sealed class StubHttpTransport : IHttpTransport
 {
     private readonly Dictionary<string, Func<HttpRequest, Result<HttpResponse>>> _handlers = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Func<HttpRequest, CancellationToken, Task<Result<HttpResponse>>>> _asyncHandlers = new(StringComparer.OrdinalIgnoreCase);
 
     public int RequestCount { get; private set; }
 
     public StubHttpTransport On(string url, Func<HttpRequest, Result<HttpResponse>> handler)
     {
         _handlers[url] = handler;
+        return this;
+    }
+
+    public StubHttpTransport OnAsync(string url, Func<HttpRequest, CancellationToken, Task<Result<HttpResponse>>> handler)
+    {
+        _asyncHandlers[url] = handler;
         return this;
     }
 
@@ -32,9 +39,15 @@ public sealed class StubHttpTransport : IHttpTransport
     public Task<Result<HttpResponse>> SendAsync(HttpRequest request, CancellationToken cancellationToken = default)
     {
         RequestCount++;
-        if (_handlers.TryGetValue(request.Uri.ToString(), out Func<HttpRequest, Result<HttpResponse>>? handler))
+        string url = request.Uri.ToString();
+        if (_handlers.TryGetValue(url, out Func<HttpRequest, Result<HttpResponse>>? handler))
         {
             return Task.FromResult(handler(request));
+        }
+
+        if (_asyncHandlers.TryGetValue(url, out Func<HttpRequest, CancellationToken, Task<Result<HttpResponse>>>? asyncHandler))
+        {
+            return asyncHandler(request, cancellationToken);
         }
 
         return Task.FromResult(Result<HttpResponse>.Failure(ErrorCode.NotFound, "无处理器"));
