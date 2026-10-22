@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
 using ACL.Core.Abstractions;
 
 namespace ACL.Infrastructure;
@@ -23,9 +24,7 @@ public sealed class HttpTransport : IHttpTransport, IDisposable
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        using HttpRequestMessage message = new(
-            request.Verb == HttpVerb.Head ? HttpMethod.Head : HttpMethod.Get,
-            request.Uri);
+        using HttpRequestMessage message = new(MethodFor(request.Verb), request.Uri);
 
         if (request.Headers is not null)
         {
@@ -40,6 +39,11 @@ public sealed class HttpTransport : IHttpTransport, IDisposable
             message.Headers.Range = new RangeHeaderValue(from, null);
         }
 
+        if (request.Verb == HttpVerb.Post && request.Content is not null)
+        {
+            message.Content = new StringContent(request.Content.Body, Encoding.UTF8, request.Content.MediaType);
+        }
+
         HttpResponseMessage? response = null;
         try
         {
@@ -52,7 +56,11 @@ public sealed class HttpTransport : IHttpTransport, IDisposable
             bool acceptsRange = response.StatusCode == HttpStatusCode.PartialContent
                 || response.Headers.AcceptRanges.Contains("bytes");
 
-            if (request.Verb == HttpVerb.Get && response.IsSuccessStatusCode)
+            bool hasBody = request.Verb != HttpVerb.Head
+                && response.StatusCode != HttpStatusCode.NoContent
+                && response.StatusCode != HttpStatusCode.NotModified;
+
+            if (hasBody)
             {
                 Stream raw = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
@@ -91,4 +99,11 @@ public sealed class HttpTransport : IHttpTransport, IDisposable
             _client.Dispose();
         }
     }
+
+    private static HttpMethod MethodFor(HttpVerb verb) => verb switch
+    {
+        HttpVerb.Head => HttpMethod.Head,
+        HttpVerb.Post => HttpMethod.Post,
+        _ => HttpMethod.Get,
+    };
 }

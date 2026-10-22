@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace ACL.Core.Abstractions;
 
 /// <summary>HTTP 方法。</summary>
@@ -8,6 +10,24 @@ public enum HttpVerb
 
     /// <summary>HEAD。</summary>
     Head = 1,
+
+    /// <summary>POST。</summary>
+    Post = 2,
+}
+
+/// <summary>请求体（JSON 或表单）。</summary>
+/// <param name="MediaType">媒体类型。</param>
+/// <param name="Body">正文。</param>
+public sealed record HttpContentSpec(string MediaType, string Body)
+{
+    /// <summary>JSON 正文。</summary>
+    public static HttpContentSpec Json(string body) => new("application/json", body);
+
+    /// <summary>表单正文（<c>application/x-www-form-urlencoded</c>）。</summary>
+    public static HttpContentSpec Form(IReadOnlyDictionary<string, string> fields)
+        => new(
+            "application/x-www-form-urlencoded",
+            string.Join("&", fields.Select(pair => $"{Uri.EscapeDataString(pair.Key)}={Uri.EscapeDataString(pair.Value)}")));
 }
 
 /// <summary>一次 HTTP 请求描述。</summary>
@@ -15,11 +35,13 @@ public enum HttpVerb
 /// <param name="Verb">方法。</param>
 /// <param name="Headers">附加请求头。</param>
 /// <param name="RangeFrom">断点续传起始字节（含），<see langword="null"/> 表示整文件。</param>
+/// <param name="Content">请求体（仅 POST 使用）。</param>
 public sealed record HttpRequest(
     Uri Uri,
     HttpVerb Verb = HttpVerb.Get,
     IReadOnlyDictionary<string, string>? Headers = null,
-    long? RangeFrom = null);
+    long? RangeFrom = null,
+    HttpContentSpec? Content = null);
 
 /// <summary>HTTP 响应。持有正文流，调用方负责释放。</summary>
 public sealed class HttpResponse : IDisposable
@@ -57,6 +79,23 @@ public sealed class HttpResponse : IDisposable
 
     /// <inheritdoc />
     public void Dispose() => Content?.Dispose();
+}
+
+/// <summary><see cref="HttpResponse"/> 辅助方法。</summary>
+public static class HttpResponseExtensions
+{
+    /// <summary>把响应正文读为字符串（空正文返回空串）。</summary>
+    public static async Task<string> ReadAsStringAsync(this HttpResponse response, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        if (response.Content is null)
+        {
+            return string.Empty;
+        }
+
+        using StreamReader reader = new(response.Content, Encoding.UTF8);
+        return await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+    }
 }
 
 /// <summary>
