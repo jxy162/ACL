@@ -18,6 +18,9 @@ public abstract partial class PageViewModelBase : ObservableObject
     /// <summary>页面说明。</summary>
     public string Description { get; }
 
+    /// <summary>该页面的左栏内容（每页各不相同，由组合根注入）。</summary>
+    public object? LeftPanel { get; set; }
+
     /// <summary>是否忙。</summary>
     [ObservableProperty]
     private bool _isBusy;

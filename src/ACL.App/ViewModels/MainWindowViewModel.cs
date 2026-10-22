@@ -3,7 +3,11 @@ using System.Windows.Input;
 using ACL.App.Services;
 using ACL.Core.Modpack;
 using ACL.Core.Abstractions;
+using ACL.Core.Auth;
 using ACL.Core.Domain;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -15,6 +19,24 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly AppServices _services;
     private string? _pendingVersionId;
+    private CancellationTokenSource? _loginCancellation;
+    private DeviceCodePromptInfo? _lastPrompt;
+
+    /// <summary>对话框是否显示。</summary>
+    [ObservableProperty]
+    private bool _isDialogVisible;
+
+    /// <summary>对话框标题。</summary>
+    [ObservableProperty]
+    private string _dialogTitle = string.Empty;
+
+    /// <summary>对话框说明。</summary>
+    [ObservableProperty]
+    private string _dialogMessage = string.Empty;
+
+    /// <summary>对话框中的设备代码（可空）。</summary>
+    [ObservableProperty]
+    private string _dialogCode = string.Empty;
 
     /// <summary>构造视图模型（自建服务）。</summary>
     public MainWindowViewModel()
@@ -50,6 +72,9 @@ public partial class MainWindowViewModel : ObservableObject
         {
             page.Select = SelectPageCommand;
         }
+
+        // 每页独立的左栏（启动页为可交互账号卡，其余为页面专属信息 + 操作）。
+        BuildLeftPanels();
 
         _currentPage = Pages[0].Page;
         Pages[0].IsSelected = true;
@@ -90,6 +115,12 @@ public partial class MainWindowViewModel : ObservableObject
                 ACL.App.Animations.ExpressivePageTransition.ReduceMotion = State.ReduceMotion;
                 SaveSettingsOnExit();
             }
+
+            if (e.PropertyName is nameof(AppState.Theme) or nameof(AppState.MinMemoryMb)
+                or nameof(AppState.MaxMemoryMb) or nameof(AppState.SelectedJavaHome))
+            {
+                UpdateLeftPanels();
+            }
         };
     }
 
@@ -128,7 +159,15 @@ public partial class MainWindowViewModel : ObservableObject
     private async Task RefreshVersionsAsync()
     {
         VersionStatus = "正在获取版本清单…";
-        VersionStatus = await VersionLoader.LoadIntoAsync(_services, State).ConfigureAwait(true);
+        try
+        {
+            VersionStatus = await VersionLoader.LoadIntoAsync(_services, State).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            VersionStatus = $"获取版本清单失败：{ex.GetType().Name}";
+            return;
+        }
 
         // 恢复上次选择的版本。
         if (_pendingVersionId is { Length: > 0 } pending)
@@ -166,7 +205,7 @@ public partial class MainWindowViewModel : ObservableObject
         State.DeviceCodeText = string.Empty;
     }
 
-    /// <summary>微软正版登录（设备码流程）。</summary>
+    /// <summary>正版登录（设备码流程）：自动打开浏览器、自动复制代码，并弹出提示框。</summary>
     [RelayCommand]
     private async Task LoginMicrosoftAsync()
     {
@@ -178,35 +217,156 @@ public partial class MainWindowViewModel : ObservableObject
         State.IsAuthenticating = true;
         State.AccountStatus = "正在请求设备码…";
         State.DeviceCodeText = string.Empty;
+        _loginCancellation = new CancellationTokenSource();
         try
         {
-            Result<AuthSession> result = await _services.Auth.LoginMicrosoftAsync((info, _) =>
-            {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    State.DeviceCodeText = $"请在浏览器打开 {info.VerificationUri} 并输入代码：{info.UserCode}";
-                    State.AccountStatus = "等待用户在浏览器中授权…";
-                });
-                return Task.CompletedTask;
-            }).ConfigureAwait(true);
+            // 整个登录（含网络轮询）都在后台线程执行；UI 只在需要时被派发更新，避免界面卡死。
+            CancellationToken loginToken = _loginCancellation.Token;
+            Result<AuthSession> result = await Task.Run(
+                async () => await _services.Auth.LoginMicrosoftAsync(
+                    (info, promptToken) =>
+                    {
+                        _lastPrompt = info;
+
+                        // 1) 只做 UI 状态更新（快速、非阻塞）。
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            DialogTitle = "登录 Minecraft";
+                            DialogCode = info.UserCode;
+                            DialogMessage =
+                                "登录网页将自动开启，请在网页中输入上方代码（已自动复制）。\n\n" +
+                                "如果网页一直加载不出来，请稍后重试或改善网络环境（加速器 / VPN）；" +
+                                $"也可以用其他设备打开 {info.VerificationUri} 并输入上述代码。";
+                            IsDialogVisible = true;
+                            State.AccountStatus = "等待用户在浏览器中授权…";
+                        });
+
+                        // 2) 副作用（唤起浏览器、写剪贴板）放到后台，绝不阻塞 UI 线程。
+                        string url = info.VerificationUriComplete ?? info.VerificationUri;
+                        _ = Task.Run(() => OpenUrl(url));
+                        Dispatcher.UIThread.Post(() => _ = CopyToClipboardAsync(info.UserCode));
+
+                        return Task.CompletedTask;
+                    },
+                    loginToken)).ConfigureAwait(true);
 
             if (result.IsSuccess)
             {
                 State.PlayerName = result.Value!.Name;
                 State.AccountStatus = $"正版 · {result.Value!.Name}";
                 State.DeviceCodeText = string.Empty;
+                ShowToast($"正版登录成功：{result.Value!.Name}");
+            }
+            else if (result.Code == ErrorCode.Canceled)
+            {
+                State.AccountStatus = "已取消登录";
             }
             else
             {
                 State.AccountStatus = $"登录失败：{result.Code}";
-                State.DeviceCodeText = result.Code == ErrorCode.InvalidAppRegistration
+                DialogTitle = "登录失败";
+                DialogCode = string.Empty;
+                DialogMessage = result.Code == ErrorCode.InvalidAppRegistration
                     ? "该 Azure 应用尚未通过 Mojang 审核，过审后即可正版登录；当前可使用离线登录（详见 docs/09）。"
                     : result.Detail ?? "请稍后重试。";
+                IsDialogVisible = true;
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // 取消是正常控制流：不得让异常逃逸（否则 AsyncRelayCommand 会重新抛出并终止进程）。
+            State.AccountStatus = "已取消登录";
+            ShowToast("已取消登录");
+        }
+        catch (Exception ex)
+        {
+            State.AccountStatus = $"登录失败：{ex.GetType().Name}";
+            DialogTitle = "登录失败";
+            DialogCode = string.Empty;
+            DialogMessage = ex.Message;
+            IsDialogVisible = true;
         }
         finally
         {
+            IsDialogVisible = false;
             State.IsAuthenticating = false;
+            try
+            {
+                _loginCancellation?.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+                // 忽略重复释放。
+            }
+
+            _loginCancellation = null;
+        }
+    }
+
+    /// <summary>打开验证网页。</summary>
+    [RelayCommand]
+    private void OpenVerificationUrl()
+    {
+        if (_lastPrompt is { } prompt)
+        {
+            OpenUrl(prompt.VerificationUriComplete ?? prompt.VerificationUri);
+        }
+    }
+
+    /// <summary>复制设备代码。</summary>
+    [RelayCommand]
+    private async Task CopyDeviceCodeAsync()
+    {
+        if (_lastPrompt is { } prompt)
+        {
+            await CopyToClipboardAsync(prompt.UserCode);
+        }
+    }
+
+    /// <summary>取消登录并关闭对话框。</summary>
+    [RelayCommand]
+    private void CancelLogin()
+    {
+        try
+        {
+            _loginCancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // 已结束的登录：忽略。
+        }
+
+        IsDialogVisible = false;
+    }
+
+    private static void OpenUrl(string url)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = url, UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            // 打不开浏览器时不影响后续手动操作。
+        }
+    }
+
+    /// <summary>写剪贴板：带超时保护且失败静默（OLE 剪贴板可能被其他进程占用）。</summary>
+    private async Task CopyToClipboardAsync(string text)
+    {
+        try
+        {
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                && desktop.MainWindow is { } window
+                && TopLevel.GetTopLevel(window)?.Clipboard is { } clipboard)
+            {
+                await clipboard.SetTextAsync(text).WaitAsync(TimeSpan.FromSeconds(2));
+                ShowToast("设备代码已复制到剪贴板");
+            }
+        }
+        catch (Exception ex) when (ex is TimeoutException or InvalidOperationException or System.Runtime.InteropServices.COMException)
+        {
+            ShowToast("设备代码复制失败，请手动复制");
         }
     }
 
@@ -238,6 +398,95 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _importStatus = string.Empty;
 
+    /// <summary>为每个页面构建专属左栏。</summary>
+    private void BuildLeftPanels()
+    {
+        Pages[0].Page.LeftPanel = new AccountLeftPanelViewModel(State);
+
+        Pages[1].Page.LeftPanel = new LeftPanelViewModel("本机版本", "安装状态与游玩时长")
+            .Set("版本总数", "—")
+            .Set("已安装", "—")
+            .Set("累计游玩", "—")
+            .Add("刷新版本清单", RefreshVersionsCommand)
+            .Add("回到主页", ShowPageCommand, Pages[0]);
+
+        Pages[2].Page.LeftPanel = new LeftPanelViewModel("安装", "把客户端 / 库 / 资源索引补齐到游戏目录")
+            .Set("目标目录", _services.GameDirectory)
+            .Set("可选版本", "—")
+            .Add("刷新版本清单", RefreshVersionsCommand);
+
+        Pages[3].Page.LeftPanel = new LeftPanelViewModel("检索设置", "Modrinth 免鉴权；CurseForge 需 API Key")
+            .Set("来源站", "Modrinth")
+            .Set("结果", "—")
+            .Set("安装位置", "mods · resourcepacks · shaderpacks · datapacks")
+            .Set("密钥", _services.HasCurseForgeKey ? "CurseForge 已配置" : "CurseForge 未配置");
+
+        Pages[4].Page.LeftPanel = new LeftPanelViewModel("运行环境", "内存 / 主题 / Java / 日志")
+            .Set("内存", "—")
+            .Set("主题", "—")
+            .Set("Java", "—")
+            .Add("刷新统计", ((DashboardPageViewModel)Pages[4].Page).RefreshCommand)
+            .Add("打开日志目录", ((DashboardPageViewModel)Pages[4].Page).OpenLogDirectoryCommand);
+
+        Pages[5].Page.LeftPanel = new LeftPanelViewModel("外观与目录", "主题 / 动效 / 路径")
+            .Set("主题", "—")
+            .Set("动效", "—")
+            .Set("数据目录", _services.DataDirectory)
+            .Add("深色", ((SettingsPageViewModel)Pages[5].Page).UseDarkThemeCommand)
+            .Add("浅色", ((SettingsPageViewModel)Pages[5].Page).UseLightThemeCommand)
+            .Add("保存设置", ((SettingsPageViewModel)Pages[5].Page).SaveSettingsCommand);
+
+        Pages[6].Page.LeftPanel = new LeftPanelViewModel("ACL", "完全自研的 Minecraft 启动器")
+            .Set("版本", "0.1.0（Kernel-β+）")
+            .Set("内核", "版本 / 下载 / 认证 / Java / 启动 / 资源 / 整合包")
+            .Set("合规", "净室自研：不含任何第三方启动器源码")
+            .Add("打开数据目录", ((MorePageViewModel)Pages[6].Page).OpenDataDirectoryCommand);
+
+        if (Pages[3].Page is ResourcePageViewModel resourcePage)
+        {
+            resourcePage.ResultsChanged += (_, _) => UpdateLeftPanels();
+        }
+
+        State.PlaytimeChanged += (_, _) => UpdateLeftPanels();
+        UpdateLeftPanels();
+    }
+
+    /// <summary>刷新各页左栏中会变化的数据。</summary>
+    private void UpdateLeftPanels()
+    {
+        int versionCount = State.Versions.Count;
+        int installed = 0;
+        foreach (VersionRowViewModel row in State.Versions)
+        {
+            if (_services.FileSystem.FileExists(Path.Combine(_services.GameDirectory, "versions", row.Id, row.Id + ".jar")))
+            {
+                installed++;
+            }
+        }
+
+        double minutes = State.PlayMinutes.Values.Sum();
+        int results = Pages[3].Page is ResourcePageViewModel rp ? rp.Results.Count : 0;
+
+        SetLeftField(Pages[1].Page, "版本总数", versionCount.ToString());
+        SetLeftField(Pages[1].Page, "已安装", installed.ToString());
+        SetLeftField(Pages[1].Page, "累计游玩", minutes <= 0 ? "—" : $"{minutes:F1} 分钟");
+        SetLeftField(Pages[2].Page, "可选版本", versionCount.ToString());
+        SetLeftField(Pages[3].Page, "结果", results.ToString());
+        SetLeftField(Pages[4].Page, "内存", $"{(int)State.MinMemoryMb} - {(int)State.MaxMemoryMb} MB");
+        SetLeftField(Pages[4].Page, "主题", State.Theme == "light" ? "浅色" : "深色");
+        SetLeftField(Pages[4].Page, "Java", string.IsNullOrEmpty(State.SelectedJavaHome) ? "尚未探测" : "已选择");
+        SetLeftField(Pages[5].Page, "主题", State.Theme == "light" ? "浅色" : "深色");
+        SetLeftField(Pages[5].Page, "动效", State.ReduceMotion ? "已减弱" : "完整");
+    }
+
+    private static void SetLeftField(PageViewModelBase? page, string label, string value)
+    {
+        if (page?.LeftPanel is LeftPanelViewModel panel)
+        {
+            panel.Set(label, value);
+        }
+    }
+
     /// <summary>选中版本并回到启动页生成计划。</summary>
     public void StartVersion(VersionRowViewModel row)
     {
@@ -260,7 +509,16 @@ public partial class MainWindowViewModel : ObservableObject
         }
 
         ImportStatus = $"正在解析整合包：{Path.GetFileName(path)}…";
-        Result<ModpackManifest> parsed = _services.Modpack.Parse(path);
+        Result<ModpackManifest> parsed;
+        try
+        {
+            parsed = _services.Modpack.Parse(path);
+        }
+        catch (Exception ex)
+        {
+            ImportStatus = $"解析异常：{ex.GetType().Name}";
+            return;
+        }
         if (!parsed.IsSuccess)
         {
             ImportStatus = $"解析失败：{parsed.Code}（{parsed.Detail}）";
@@ -270,9 +528,18 @@ public partial class MainWindowViewModel : ObservableObject
         ModpackManifest manifest = parsed.Value!;
         ImportStatus = $"{manifest.Name}（{manifest.Format}）：Minecraft {manifest.MinecraftVersion}，文件 {manifest.Files.Count} 个，开始安装…";
 
-        Result<ModpackInstallResult> installed = await _services.Modpack
-            .InstallAsync(manifest, path, _services.GameDirectory)
-            .ConfigureAwait(true);
+        Result<ModpackInstallResult> installed;
+        try
+        {
+            installed = await _services.Modpack
+                .InstallAsync(manifest, path, _services.GameDirectory)
+                .ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            ImportStatus = $"导入异常：{ex.GetType().Name}";
+            return;
+        }
 
         ImportStatus = installed.IsSuccess
             ? $"已导入 {manifest.Name}：覆盖文件 {installed.Value!.OverridesCopied} 个，下载 {installed.Value!.Downloaded.Count} 个，待解析 {installed.Value!.Unresolved.Count} 个。"

@@ -8,6 +8,7 @@ namespace ACL.App.ViewModels;
 /// <summary>更多页。</summary>
 public partial class MorePageViewModel : PageViewModelBase
 {
+
     private readonly AppServices _services;
 
     /// <summary>构建更多页。</summary>

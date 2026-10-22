@@ -12,6 +12,7 @@ namespace ACL.App.ViewModels;
 /// <summary>下载页：版本清单与安装。</summary>
 public partial class DownloadPageViewModel : PageViewModelBase
 {
+
     private readonly AppServices _services;
     private readonly AppState _state;
 
@@ -105,6 +106,10 @@ public partial class DownloadPageViewModel : PageViewModelBase
             ApplyFilter();
             Status = summary;
         }
+        catch (Exception ex)
+        {
+            Status = $"刷新失败：{ex.GetType().Name}";
+        }
         finally
         {
             IsBusy = false;
@@ -167,6 +172,10 @@ public partial class DownloadPageViewModel : PageViewModelBase
                 : $"安装失败：{result.Code}";
             _state.SelectedVersionId = row.Id;
             ApplyFilter();   // 刷新“已安装”标记
+        }
+        catch (Exception ex)
+        {
+            Status = $"安装失败：{ex.GetType().Name}";
         }
         finally
         {

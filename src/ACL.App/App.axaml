@@ -1,14 +1,113 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ACL.App.ViewModels"
+             xmlns:controls="using:ACL.App.Controls"
              x:Class="ACL.App.App"
              RequestedThemeVariant="Dark">
 
   <Application.DataTemplates>
 
+    <!-- 启动页左栏：可交互（账号 / 版本 / Java） -->
+    <DataTemplate DataType="vm:AccountLeftPanelViewModel">
+      <StackPanel Spacing="12">
+        <Border Classes="AclCard hoverable" Padding="18">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Border Width="44" Height="44" CornerRadius="999" Background="{DynamicResource AclPrimaryBrush}">
+                <TextBlock Text="{Binding State.AvatarLetter}" Foreground="{DynamicResource AclOnPrimary}" FontSize="19"
+                           FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="{Binding State.PlayerName}" Classes="AclSection" />
+                <TextBlock Text="{Binding State.AccountStatus}" Classes="AclCaption" />
+              </StackPanel>
+            </StackPanel>
+            <TextBox Text="{Binding State.PlayerName}" Watermark="玩家名（离线）" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+              <Button Grid.Column="0" Classes="AclPrimary" Content="离线登录" HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" Command="{Binding $parent[Window].DataContext.LoginOfflineCommand}" />
+              <Button Grid.Column="1" Classes="AclGhost" Content="正版登录" HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" Command="{Binding $parent[Window].DataContext.LoginMicrosoftCommand}"
+                      IsEnabled="{Binding !State.IsAuthenticating}" />
+            </Grid>
+            <TextBlock Text="{Binding State.DeviceCodeText}" Classes="AclCaption" TextWrapping="Wrap"
+                       IsVisible="{Binding State.DeviceCodeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="AclCard hoverable" Padding="18">
+          <StackPanel Spacing="10">
+            <TextBlock Text="游戏版本" Classes="AclSection" />
+            <ComboBox ItemsSource="{Binding State.Versions}" SelectedItem="{Binding State.SelectedVersion}" HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate DataType="vm:VersionRowViewModel">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding Id}" />
+                    <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" Classes="AclCaption" Margin="10,0,0,0" />
+                  </Grid>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Classes="AclGhost" Content="刷新版本清单" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding $parent[Window].DataContext.RefreshVersionsCommand}" />
+            <TextBlock Text="{Binding $parent[Window].DataContext.VersionStatus}" Classes="AclCaption" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="AclCard hoverable" Padding="18">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Java" Classes="AclSection" />
+            <TextBlock Text="{Binding State.SelectedJavaHome, TargetNullValue=尚未探测, FallbackValue=尚未探测}"
+                       Classes="AclCaption" TextWrapping="Wrap" />
+            <TextBlock Text="在“设置”页探测本机运行时" Classes="AclCaption" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- 其他页面左栏：页面专属信息 + 操作 -->
+    <DataTemplate DataType="vm:LeftPanelViewModel">
+      <ScrollViewer>
+        <StackPanel Spacing="12">
+          <Border Classes="AclCard" Padding="20">
+            <StackPanel Spacing="6">
+              <TextBlock Text="{Binding Title}" Classes="AclHeadline" />
+              <TextBlock Text="{Binding Subtitle}" Classes="AclCaption" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="20">
+            <ItemsControl ItemsSource="{Binding Fields}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:LeftPanelField">
+                  <Grid ColumnDefinitions="Auto,*" Margin="0,5" ColumnSpacing="10">
+                    <TextBlock Grid.Column="0" Text="{Binding Label}" Classes="AclCaption" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Value}" Classes="AclBody" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Border>
+
+          <ItemsControl ItemsSource="{Binding Actions}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:LeftPanelAction">
+                <Button Classes="AclGhost" Content="{Binding Label}" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" Margin="0,3"
+                        Command="{Binding Command}" CommandParameter="{Binding Parameter}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="{Binding Hint}" Classes="AclCaption" TextWrapping="Wrap"
+                     IsVisible="{Binding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </ScrollViewer>
+    </DataTemplate>
+
     <!-- 启动页 -->
     <DataTemplate DataType="vm:LaunchPageViewModel">
-      <ScrollViewer>
+      <controls:SmoothScrollViewer>
         <StackPanel Spacing="12">
           <Border Classes="AclCard" Padding="30">
             <Grid ColumnDefinitions="*,Auto">
@@ -81,7 +180,7 @@
             </StackPanel>
           </Border>
         </StackPanel>
-      </ScrollViewer>
+      </controls:SmoothScrollViewer>
     </DataTemplate>
 
     <!-- 游戏列表页 -->
@@ -183,7 +282,7 @@
 
     <!-- 设置页 -->
     <DataTemplate DataType="vm:SettingsPageViewModel">
-      <ScrollViewer>
+      <controls:SmoothScrollViewer>
         <StackPanel Spacing="12">
           <Border Classes="AclCard" Padding="24">
             <StackPanel Spacing="6">
@@ -263,11 +362,11 @@
             </StackPanel>
           </Border>
         </StackPanel>
-      </ScrollViewer>
+      </controls:SmoothScrollViewer>
     </DataTemplate>
     <!-- 仪表板页 -->
     <DataTemplate DataType="vm:DashboardPageViewModel">
-      <ScrollViewer>
+      <controls:SmoothScrollViewer>
         <StackPanel Spacing="12">
           <Border Classes="AclCard" Padding="24">
             <StackPanel Spacing="10">
@@ -313,7 +412,7 @@
             </StackPanel>
           </Border>
         </StackPanel>
-      </ScrollViewer>
+      </controls:SmoothScrollViewer>
     </DataTemplate>
     <!-- 更多页 -->
     <DataTemplate DataType="vm:MorePageViewModel">

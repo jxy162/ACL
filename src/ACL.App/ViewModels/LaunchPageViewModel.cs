@@ -14,6 +14,7 @@ namespace ACL.App.ViewModels;
 /// <summary>启动页。</summary>
 public partial class LaunchPageViewModel : PageViewModelBase
 {
+
     private readonly AppServices _services;
     private readonly AppState _state;
 
@@ -111,6 +112,11 @@ public partial class LaunchPageViewModel : PageViewModelBase
             {
                 Log.Add($"[warn] {warning}");
             }
+        }
+        catch (Exception ex)
+        {
+            Status = $"生成计划失败：{ex.GetType().Name}";
+            Log.Add($"[error] {ex.Message}");
         }
         finally
         {
@@ -217,6 +223,16 @@ public partial class LaunchPageViewModel : PageViewModelBase
             }
 
             Log.Add($"[4/4] {Status}");
+        }
+        catch (OperationCanceledException)
+        {
+            Status = "已取消";
+            Log.Add("[4/4] 已取消");
+        }
+        catch (Exception ex)
+        {
+            Status = $"启动失败：{ex.GetType().Name}";
+            Log.Add($"[error] {ex.Message}");
         }
         finally
         {

@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         KeyDown += OnKeyDown;
+        ApplyPageTransition();
         Closing += (_, _) => (DataContext as MainWindowViewModel)?.SaveSettingsOnExit();
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DropEvent, OnDrop);
@@ -35,6 +36,47 @@ public partial class MainWindow : Window
         };
     }
 
+    /// <inheritdoc />
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(MainWindowViewModel.IsDialogVisible) && vm.IsDialogVisible)
+                {
+                    PlayDialogEntrance();
+                }
+
+                if (args.PropertyName == nameof(MainWindowViewModel.IsDialogVisible) && !vm.IsDialogVisible)
+                {
+                    ResetDialogVisuals();
+                }
+            };
+        }
+    }
+
+    /// <summary>关闭后复位对话框视觉状态，供下次进场动画使用。</summary>
+    private void ResetDialogVisuals()
+    {
+        DialogBackdrop.Opacity = 0d;
+        DialogCard.Opacity = 0d;
+        DialogCard.RenderTransform = Avalonia.Media.Transformation.TransformOperations.Parse("translate(0px,22px) scale(0.96)");
+    }
+
+    /// <summary>装配页面切换过渡（按“减弱动效”设置）。</summary>
+    private void ApplyPageTransition()
+        => PageHost.PageTransition = ACL.App.Animations.ExpressivePageTransition.Create(
+            ACL.App.Animations.ExpressivePageTransition.ReduceMotion);
+
+    /// <summary>对话框进场：驱动属性到目标值，由样式中的 Transitions 负责动画。</summary>
+    private void PlayDialogEntrance()
+    {
+        DialogBackdrop.Opacity = 1d;
+        DialogCard.Opacity = 1d;
+        DialogCard.RenderTransform = null;
+    }
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -55,6 +97,11 @@ public partial class MainWindow : Window
                 vm.ShowPageCommand.Execute(vm.Pages[index]);
             }
 
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape && vm.IsDialogVisible)
+        {
+            vm.CancelLoginCommand.Execute(null);
             e.Handled = true;
         }
         else if (e.Key == Key.Escape && vm.IsFullscreen)

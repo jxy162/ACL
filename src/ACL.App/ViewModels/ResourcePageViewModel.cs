@@ -13,6 +13,7 @@ namespace ACL.App.ViewModels;
 /// <summary>资源页：检索并安装 Mod / 资源包 / 光影 / 数据包。</summary>
 public partial class ResourcePageViewModel : PageViewModelBase
 {
+
     private readonly AppServices _services;
     private readonly AppState _state;
 
@@ -50,6 +51,9 @@ public partial class ResourcePageViewModel : PageViewModelBase
     public ObservableCollection<ResourceRowViewModel> Results { get; } = [];
 
     private readonly List<ResourceRowViewModel> _allResults = [];
+
+    /// <summary>结果列表变化事件（用于刷新左栏统计）。</summary>
+    public event EventHandler? ResultsChanged;
 
     /// <summary>仅显示与当前游戏版本匹配的结果。</summary>
     [ObservableProperty]
@@ -138,7 +142,12 @@ public partial class ResourcePageViewModel : PageViewModelBase
 
             ApplyResultFilter();
             Status = $"共 {result.Value!.Total} 条结果，已显示 {Results.Count} 条。";
+            ResultsChanged?.Invoke(this, EventArgs.Empty);
             _ = LoadIconsAsync();
+        }
+        catch (Exception ex)
+        {
+            Status = $"搜索失败：{ex.GetType().Name}";
         }
         finally
         {
@@ -184,6 +193,10 @@ public partial class ResourcePageViewModel : PageViewModelBase
             Result<DownloadOutcome> downloaded = await _services.Download.DownloadAsync(item, sink).ConfigureAwait(true);
             row.Status = downloaded.IsSuccess ? $"已下载到 {folder}/" : $"失败：{downloaded.Code}";
             Status = row.Status;
+        }
+        catch (Exception ex)
+        {
+            row.Status = $"失败：{ex.GetType().Name}";
         }
         finally
         {

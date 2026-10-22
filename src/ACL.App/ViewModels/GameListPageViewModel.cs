@@ -8,6 +8,7 @@ namespace ACL.App.ViewModels;
 /// <summary>游戏列表页：本机已安装与可选版本，含游玩时长与快捷启动。</summary>
 public partial class GameListPageViewModel : PageViewModelBase
 {
+
     private readonly AppServices _services;
     private readonly AppState _state;
     private readonly Action<VersionRowViewModel> _startVersion;

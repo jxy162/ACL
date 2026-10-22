@@ -10,6 +10,7 @@ namespace ACL.App.ViewModels;
 /// <summary>仪表板：运行统计、最近一次启动结果与诊断入口。</summary>
 public partial class DashboardPageViewModel : PageViewModelBase
 {
+
     private readonly AppServices _services;
     private readonly AppState _state;
 

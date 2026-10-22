@@ -10,6 +10,7 @@ namespace ACL.App.ViewModels;
 /// <summary>设置页。</summary>
 public partial class SettingsPageViewModel : PageViewModelBase
 {
+
     private readonly AppServices _services;
 
     /// <summary>构建设置页。</summary>
@@ -106,6 +107,10 @@ public partial class SettingsPageViewModel : PageViewModelBase
 
             Status = runtimes.Count == 0 ? "未发现可用的 Java。" : $"发现 {runtimes.Count} 个 Java 运行时。";
             State.SelectedJavaHome = runtimes.Count > 0 ? runtimes[0].HomeFolder : null;
+        }
+        catch (Exception ex)
+        {
+            Status = $"探测失败：{ex.GetType().Name}";
         }
         finally
         {

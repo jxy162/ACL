@@ -40,6 +40,52 @@ public class MainWindowTests
     }
 
     [Fact]
+    public void CancelLogin_OnIdleViewModel_DoesNotThrow()
+    {
+        // 回归：取消登录曾因异常逃逸（AsyncRelayCommand 重新抛出）导致无响应后崩溃。
+        MainWindowViewModel vm = new();
+
+        vm.CancelLoginCommand.Execute(null);
+
+        Assert.False(vm.IsDialogVisible);
+    }
+
+    [Fact]
+    public async Task DialogEntrance_DoesNotThrow()
+    {
+        // 回归：对话框进场动画曾因缺少 RenderTransform 的 animator 直接崩溃。
+        using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(App));
+        await session.Dispatch(
+            () =>
+            {
+                MainWindowViewModel vm = new();
+                MainWindow window = new() { DataContext = vm };
+                window.Show();
+
+                vm.DialogTitle = "登录 Minecraft";
+                vm.DialogCode = "ABCD-EFGH";
+                vm.DialogMessage = "测试";
+                vm.IsDialogVisible = true;
+
+                Assert.True(vm.IsDialogVisible);
+
+                vm.IsDialogVisible = false;
+                Assert.False(vm.IsDialogVisible);
+            },
+            CancellationToken.None);
+    }
+
+    [Fact]
+    public void SmoothScroll_TargetIsClamped()
+    {
+        // 平滑滚动：目标偏移按可滚动范围钳制（纯函数，便于回归）。
+        Assert.Equal(0d, ACL.App.Controls.SmoothScrollViewer.ComputeTarget(0, -500, 2000, 600));
+        Assert.Equal(1400d, ACL.App.Controls.SmoothScrollViewer.ComputeTarget(1400, 500, 2000, 600));
+        Assert.Equal(200d, ACL.App.Controls.SmoothScrollViewer.ComputeTarget(0, 200, 2000, 600));
+        Assert.Equal(0d, ACL.App.Controls.SmoothScrollViewer.ComputeTarget(100, 100, 500, 600));
+    }
+
+    [Fact]
     public async Task TitleBarStrip_IsHitTestable_ForDragging()
     {
         using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(App));

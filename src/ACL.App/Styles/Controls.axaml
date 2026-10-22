@@ -217,4 +217,25 @@
     <Setter Property="Background" Value="{DynamicResource AclStateLayerHover}" />
   </Style>
 
+  <!-- 对话框：淡入 + 轻微上移（声明式过渡，自动匹配动画器） -->
+  <Style Selector="Border.AclDialogBackdrop">
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Border.AclDialogCard">
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="RenderTransform" Value="translate(0px,22px) scale(0.96)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.20" Easing="CubicEaseOut" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.30" Easing="QuinticEaseOut" />
+      </Transitions>
+    </Setter>
+  </Style>
+
 </Styles>

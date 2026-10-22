@@ -49,67 +49,9 @@
         </Grid>
 
         <!-- 主体 -->
-        <Grid Grid.Row="1" ColumnDefinitions="320,*" Margin="18,0,18,0">
-          <StackPanel Spacing="10">
-            <Border Classes="AclCard hoverable" Padding="16">
-              <StackPanel Spacing="10">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                  <Border Width="42" Height="42" CornerRadius="999" Background="{DynamicResource AclPrimaryBrush}">
-                    <TextBlock Text="{Binding State.AvatarLetter}" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                  </Border>
-                  <StackPanel VerticalAlignment="Center" Spacing="2">
-                    <TextBlock Text="{Binding State.PlayerName}" Classes="AclSection" />
-                    <TextBlock Text="{Binding State.AccountStatus}" Classes="AclCaption" />
-                  </StackPanel>
-                </StackPanel>
-                <TextBox Text="{Binding State.PlayerName}" Watermark="玩家名（离线）" />
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                  <Button Grid.Column="0" Classes="AclPrimary" Content="离线登录" HorizontalAlignment="Stretch"
-                          HorizontalContentAlignment="Center" Command="{Binding LoginOfflineCommand}" />
-                  <Button Grid.Column="1" Classes="AclGhost" Content="微软登录" HorizontalAlignment="Stretch"
-                          HorizontalContentAlignment="Center" Command="{Binding LoginMicrosoftCommand}"
-                          IsEnabled="{Binding !State.IsAuthenticating}" />
-                </Grid>
-                <TextBlock Text="{Binding State.DeviceCodeText}" Classes="AclCaption" TextWrapping="Wrap"
-                           IsVisible="{Binding State.DeviceCodeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-              </StackPanel>
-            </Border>
-
-            <Border Classes="AclCard hoverable" Padding="16">
-              <StackPanel Spacing="10">
-                <TextBlock Text="游戏版本" Classes="AclSection" />
-                <ComboBox ItemsSource="{Binding State.Versions}" SelectedItem="{Binding State.SelectedVersion}" HorizontalAlignment="Stretch">
-                  <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="vm:VersionRowViewModel">
-                      <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="{Binding Id}" />
-                        <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" Classes="AclCaption" Margin="10,0,0,0" />
-                      </Grid>
-                    </DataTemplate>
-                  </ComboBox.ItemTemplate>
-                </ComboBox>
-                <Button Classes="AclGhost" Content="刷新版本清单" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center" Command="{Binding RefreshVersionsCommand}" />
-                <TextBlock Text="{Binding VersionStatus}" Classes="AclCaption" TextWrapping="Wrap" />
-              </StackPanel>
-            </Border>
-
-            <Border Classes="AclCard hoverable" Padding="16">
-              <StackPanel Spacing="6">
-                <TextBlock Text="Java" Classes="AclSection" />
-                <TextBlock Text="{Binding State.SelectedJavaHome, TargetNullValue=尚未探测, FallbackValue=尚未探测}"
-                           Classes="AclCaption" TextWrapping="Wrap" />
-                <TextBlock Text="在“设置”页探测本机运行时" Classes="AclCaption" />
-              </StackPanel>
-            </Border>
-          </StackPanel>
-
-          <TransitioningContentControl Grid.Column="1" Margin="14,0,0,0" Content="{Binding CurrentPage}">
-            <TransitioningContentControl.PageTransition>
-              <anim:ExpressivePageTransition Duration="0:0:0.30" />
-            </TransitioningContentControl.PageTransition>
-          </TransitioningContentControl>
+        <Grid Grid.Row="1" ColumnDefinitions="330,*" Margin="18,0,18,0">
+          <ContentControl Grid.Column="0" Content="{Binding CurrentPage.LeftPanel}" />
+          <TransitioningContentControl x:Name="PageHost" Grid.Column="1" Margin="14,0,0,0" Content="{Binding CurrentPage}" />
         </Grid>
 
         <!-- 拖入整合包后的状态 -->
@@ -149,6 +91,28 @@
         </Border>
       </Grid>
 
+      <!-- 登录对话框（遮罩 + 卡片，进场动画由代码触发） -->
+      <Panel x:Name="DialogOverlay" IsVisible="{Binding IsDialogVisible}">
+        <Border x:Name="DialogBackdrop" Classes="AclDialogBackdrop" Background="#99000000" />
+        <Border x:Name="DialogCard" Classes="AclCard AclDialogCard" MaxWidth="560" Padding="30"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+          <StackPanel Spacing="16">
+            <TextBlock Text="{Binding DialogTitle}" Classes="AclHeadline" />
+            <TextBlock Text="{Binding DialogMessage}" Classes="AclBody" TextWrapping="Wrap" />
+            <Border Classes="AclCard" Padding="20"
+                    IsVisible="{Binding DialogCode, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <TextBlock Text="{Binding DialogCode}" FontSize="30" FontWeight="Bold"
+                         FontFamily="Cascadia Mono,Consolas,monospace" LetterSpacing="2"
+                         HorizontalAlignment="Center" Foreground="{DynamicResource AclSecondaryTextBrush}" />
+            </Border>
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+              <Button Classes="AclGhost" Content="打开网页" Command="{Binding OpenVerificationUrlCommand}" />
+              <Button Classes="AclGhost" Content="复制代码" Command="{Binding CopyDeviceCodeCommand}" />
+              <Button Classes="AclPrimary" Content="取消" Command="{Binding CancelLoginCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </Panel>
       <!-- 轻提示（Toast） -->
       <Border Classes="AclCard" CornerRadius="999" Padding="22,11" HorizontalAlignment="Center" VerticalAlignment="Bottom"
               Margin="0,0,0,96"
