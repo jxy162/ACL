@@ -10,12 +10,10 @@ namespace ACL.App.ViewModels;
 /// <summary>游戏列表行：本机已安装实例。</summary>
 public partial class InstalledInstanceRow : ObservableObject
 {
-    /// <summary>构造行。</summary>
-    public InstalledInstanceRow(InstalledInstance instance, ICommand start, ICommand openSettings)
+    /// <summary>构造行（命令随后注入，便于行内命令直接引用本行）。</summary>
+    public InstalledInstanceRow(InstalledInstance instance)
     {
         Instance = instance;
-        StartCommand = start;
-        SettingsCommand = openSettings;
         PlayMinutes = 0;
     }
 
@@ -31,11 +29,11 @@ public partial class InstalledInstanceRow : ObservableObject
     /// <summary>安装时间文本。</summary>
     public string InstalledText => Instance.ReleasedTime == default ? "—" : Instance.ReleasedTime.ToLocalTime().ToString("yyyy-MM-dd");
 
-    /// <summary>启动命令。</summary>
-    public ICommand StartCommand { get; }
+    /// <summary>启动命令（由页面注入）。</summary>
+    public ICommand StartCommand { get; set; } = new RelayCommand(() => { });
 
-    /// <summary>实例设置命令。</summary>
-    public ICommand SettingsCommand { get; }
+    /// <summary>实例设置命令（由页面注入）。</summary>
+    public ICommand SettingsCommand { get; set; } = new RelayCommand(() => { });
 
     /// <summary>累计游玩分钟。</summary>
     [ObservableProperty]
@@ -78,11 +76,11 @@ public partial class GameListPageViewModel : PageViewModelBase
     /// <summary>本机实例列表。</summary>
     public ObservableCollection<InstalledInstanceRow> Rows { get; } = [];
 
-    /// <summary>启动命令。</summary>
-    public ICommand StartCommand { get; }
+    /// <summary>启动命令（由页面注入）。</summary>
+    public ICommand StartCommand { get; set; } = new RelayCommand(() => { });
 
-    /// <summary>实例设置命令。</summary>
-    public ICommand SettingsCommand { get; }
+    /// <summary>实例设置命令（由页面注入）。</summary>
+    public ICommand SettingsCommand { get; set; } = new RelayCommand(() => { });
 
     /// <summary>状态文本。</summary>
     [ObservableProperty]
@@ -113,8 +111,10 @@ public partial class GameListPageViewModel : PageViewModelBase
                 continue;
             }
 
-            Rows.Add(new InstalledInstanceRow(instance, StartCommand, SettingsCommand)
+            Rows.Add(new InstalledInstanceRow(instance)
             {
+                StartCommand = StartCommand,
+                SettingsCommand = SettingsCommand,
                 PlayMinutes = _state.GetPlayMinutes(instance.Id),
             });
         }

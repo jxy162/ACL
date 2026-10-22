@@ -64,7 +64,7 @@ public class PageRenderTests
                     ModLoaderKind.None,
                     null,
                     DateTimeOffset.UnixEpoch);
-                InstalledInstanceRow instanceRow = new(instance, vm.LaunchPage.LaunchInstanceCommand, vm.LaunchPage.InstallSelectedCommand);
+                InstalledInstanceRow instanceRow = new(instance);
                 vm.OpenInstanceSettings(instanceRow);
                 window.Measure(new Avalonia.Size(1000, 700));
                 window.Arrange(new Avalonia.Rect(0, 0, 1000, 700));
@@ -96,6 +96,41 @@ public class PageRenderTests
 
                 vm.HideLaunchCommand.Execute(null);
                 Assert.False(vm.State.IsLaunching);
+            },
+            CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task LaunchPage_WithLocalInstance_RendersAndRowsHaveMatchingCommands()
+    {
+        // 回归：本机实例行的命令参数类型必须与绑定一致，否则按钮挂到逻辑树上即抛异常（曾导致启动即崩溃）。
+        using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(App));
+        await session.Dispatch(
+            () =>
+            {
+                MainWindowViewModel vm = new();
+                vm.State.Instances.Add(new InstalledInstance(
+                    "smoke-fabric",
+                    "C:/game/versions/smoke-fabric",
+                    "C:/game/versions/smoke-fabric/smoke-fabric.json",
+                    true,
+                    "1.20.1",
+                    ModLoaderKind.Fabric,
+                    "0.15.11",
+                    DateTimeOffset.UnixEpoch));
+
+                MainWindow window = new() { DataContext = vm };
+                window.Show();
+                vm.LaunchPage.ApplyFilter();
+                window.Measure(new Avalonia.Size(1000, 700));
+                window.Arrange(new Avalonia.Rect(0, 0, 1000, 700));
+
+                Assert.True(vm.LaunchPage.HasLocalInstances);
+                InstalledInstanceRow row = vm.LaunchPage.LocalInstances[0];
+                // 行内命令对"行"参数必须可执行（不抛参数类型异常）。
+                row.StartCommand.Execute(row);
+                row.SettingsCommand.Execute(row);
+                Assert.IsType<InstanceSettingsPageViewModel>(vm.CurrentPage);
             },
             CancellationToken.None);
     }

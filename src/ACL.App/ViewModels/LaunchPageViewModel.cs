@@ -143,10 +143,15 @@ public partial class LaunchPageViewModel : PageViewModelBase
         LocalInstances.Clear();
         foreach (InstalledInstance instance in _state.Instances)
         {
-            LocalInstances.Add(new InstalledInstanceRow(instance, LaunchInstanceCommand, new RelayCommand(() => { }))
+            InstalledInstanceRow row = new(instance)
             {
                 PlayMinutes = _state.GetPlayMinutes(instance.Id),
-            });
+            };
+
+            // 行内命令必须与绑定的参数类型一致：这里直接按实例 ID 启动 / 打开设置。
+            row.StartCommand = new AsyncRelayCommand(() => _host.LaunchInstanceAsync(instance.Id));
+            row.SettingsCommand = new RelayCommand(() => _host.OpenInstanceSettings(row));
+            LocalInstances.Add(row);
         }
 
         OnPropertyChanged(nameof(HasLocalInstances));
