@@ -162,6 +162,7 @@ public partial class DownloadPageViewModel : PageViewModelBase
                 ? $"已补齐 {row.Id}（{plan.Downloads.Count} 项）。"
                 : $"安装失败：{result.Code}";
             _state.SelectedVersionId = row.Id;
+            ApplyFilter();   // 刷新“已安装”标记
         }
         finally
         {

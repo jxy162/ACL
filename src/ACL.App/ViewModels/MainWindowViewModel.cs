@@ -83,6 +83,16 @@ public partial class MainWindowViewModel : ObservableObject
     {
         VersionStatus = "正在获取版本清单…";
         VersionStatus = await VersionLoader.LoadIntoAsync(_services, State).ConfigureAwait(true);
+
+        // 同步下载页的筛选列表与状态，避免界面看起来“空”。
+        foreach (NavItem item in Pages)
+        {
+            if (item.Page is DownloadPageViewModel download)
+            {
+                download.ApplyFilter();
+                download.Status = VersionStatus;
+            }
+        }
     }
 
     /// <summary>离线登录（占据账号位）。</summary>
