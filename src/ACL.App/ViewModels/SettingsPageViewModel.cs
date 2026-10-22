@@ -30,6 +30,30 @@ public partial class SettingsPageViewModel : PageViewModelBase
     [ObservableProperty]
     private string _status = "点击“探测 Java”以扫描本机运行时。";
 
+    /// <summary>设置文件路径。</summary>
+    public string SettingsPath => Path.Combine(_services.DataDirectory, "ACL.config.json");
+
+    /// <summary>保存状态。</summary>
+    [ObservableProperty]
+    private string _settingsStatus = string.Empty;
+
+    /// <summary>保存设置到便携文件。</summary>
+    [RelayCommand]
+    public void SaveSettings()
+    {
+        AclSettings settings = new()
+        {
+            MinMemoryMb = (int)State.MinMemoryMb,
+            MaxMemoryMb = (int)State.MaxMemoryMb,
+            PreferOfficialMirror = State.PreferOfficial,
+            PlayerName = State.PlayerName,
+            SelectedVersionId = State.SelectedVersionId,
+        };
+
+        Result saved = _services.Settings.Save(settings);
+        SettingsStatus = saved.IsSuccess ? $"已保存到 {SettingsPath}" : $"保存失败：{saved.Code}";
+    }
+
     /// <summary>数据目录。</summary>
     public string DataDirectory => _services.DataDirectory;
 

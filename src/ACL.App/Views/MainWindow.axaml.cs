@@ -14,6 +14,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         KeyDown += OnKeyDown;
+        Closing += (_, _) => (DataContext as MainWindowViewModel)?.SaveSettingsOnExit();
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);

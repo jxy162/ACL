@@ -28,6 +28,7 @@ public sealed class AppServices
         IModpackInstaller modpack,
         IResourceIndex modrinth,
         IResourceIndex curseForge,
+        IAppSettingsStore settings,
         string dataDirectory,
         string gameDirectory)
     {
@@ -45,6 +46,7 @@ public sealed class AppServices
         Modpack = modpack;
         Modrinth = modrinth;
         CurseForge = curseForge;
+        Settings = settings;
         DataDirectory = dataDirectory;
         GameDirectory = gameDirectory;
     }
@@ -90,6 +92,9 @@ public sealed class AppServices
 
     /// <summary>CurseForge 资源索引。</summary>
     public IResourceIndex CurseForge { get; }
+
+    /// <summary>设置存储（便携 <c>ACL.config.json</c>）。</summary>
+    public IAppSettingsStore Settings { get; }
 
     /// <summary>启动器数据目录（便携：与启动器同目录）。</summary>
     public string DataDirectory { get; }
@@ -151,6 +156,7 @@ public sealed class AppServices
             new ModpackInstaller(fileSystem, download),
             new ModrinthClient(http),
             new CurseForgeClient(http, secrets),
+            new PortableSettingsStore(fileSystem, Path.Combine(dataDirectory, "ACL.config.json")),
             dataDirectory,
             gameDirectory);
     }

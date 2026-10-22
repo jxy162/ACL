@@ -13,6 +13,7 @@ namespace ACL.App.ViewModels;
 public partial class MainWindowViewModel : ObservableObject
 {
     private readonly AppServices _services;
+    private string? _pendingVersionId;
 
     /// <summary>构造视图模型（自建服务）。</summary>
     public MainWindowViewModel()
@@ -49,6 +50,17 @@ public partial class MainWindowViewModel : ObservableObject
 
         _currentPage = Pages[0].Page;
         Pages[0].IsSelected = true;
+
+        // 恢复上次的便携设置。
+        Result<AclSettings> loaded = services.Settings.Load();
+        if (loaded.IsSuccess)
+        {
+            State.MinMemoryMb = loaded.Value!.MinMemoryMb;
+            State.MaxMemoryMb = loaded.Value!.MaxMemoryMb;
+            State.PreferOfficial = loaded.Value!.PreferOfficialMirror;
+            State.PlayerName = loaded.Value!.PlayerName;
+            _pendingVersionId = loaded.Value!.SelectedVersionId;
+        }
     }
 
     /// <summary>共享设置。</summary>
@@ -87,6 +99,13 @@ public partial class MainWindowViewModel : ObservableObject
     {
         VersionStatus = "正在获取版本清单…";
         VersionStatus = await VersionLoader.LoadIntoAsync(_services, State).ConfigureAwait(true);
+
+        // 恢复上次选择的版本。
+        if (_pendingVersionId is { Length: > 0 } pending)
+        {
+            State.SelectedVersion = State.Versions.FirstOrDefault(v => v.Id == pending) ?? State.SelectedVersion;
+            _pendingVersionId = null;
+        }
 
         // 同步下载页的筛选列表与状态，避免界面看起来“空”。
         foreach (NavItem item in Pages)
@@ -148,6 +167,18 @@ public partial class MainWindowViewModel : ObservableObject
         finally
         {
             State.IsAuthenticating = false;
+        }
+    }
+
+    /// <summary>关闭前保存设置。</summary>
+    public void SaveSettingsOnExit()
+    {
+        foreach (NavItem item in Pages)
+        {
+            if (item.Page is SettingsPageViewModel settings)
+            {
+                settings.SaveSettings();
+            }
         }
     }
 

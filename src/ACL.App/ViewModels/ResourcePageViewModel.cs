@@ -22,6 +22,15 @@ public partial class ResourcePageViewModel : PageViewModelBase
         _services = services;
         _state = state;
         _gameVersion = state.SelectedVersionId ?? string.Empty;
+
+        // 跟随“游戏版本”选择联动检索用的版本。
+        _state.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppState.SelectedVersionId) && !string.IsNullOrEmpty(_state.SelectedVersionId))
+            {
+                GameVersion = _state.SelectedVersionId!;
+            }
+        };
     }
 
     /// <summary>来源站。</summary>
@@ -32,6 +41,9 @@ public partial class ResourcePageViewModel : PageViewModelBase
 
     /// <summary>加载器筛选。</summary>
     public ObservableCollection<string> Loaders { get; } = ["不限", "Fabric", "Forge", "NeoForge", "Quilt"];
+
+    /// <summary>排序方式。</summary>
+    public ObservableCollection<string> Sorts { get; } = ["相关度", "下载量", "最近更新", "最新发布"];
 
     /// <summary>搜索结果。</summary>
     public ObservableCollection<ResourceRowViewModel> Results { get; } = [];
@@ -47,6 +59,10 @@ public partial class ResourcePageViewModel : PageViewModelBase
     /// <summary>加载器。</summary>
     [ObservableProperty]
     private string _loader = "不限";
+
+    /// <summary>排序。</summary>
+    [ObservableProperty]
+    private string _sort = "相关度";
 
     /// <summary>游戏版本。</summary>
     [ObservableProperty]
@@ -95,7 +111,8 @@ public partial class ResourcePageViewModel : PageViewModelBase
                 string.IsNullOrWhiteSpace(GameVersion) ? null : GameVersion,
                 CurrentLoader(),
                 0,
-                30);
+                30,
+                CurrentSort());
 
             Result<ResourceSearchResult> result = await CurrentIndex().SearchAsync(query).ConfigureAwait(true);
             if (!result.IsSuccess)
@@ -170,6 +187,14 @@ public partial class ResourcePageViewModel : PageViewModelBase
         "光影" => ResourceKind.ShaderPack,
         "数据包" => ResourceKind.DataPack,
         _ => ResourceKind.Mod,
+    };
+
+    private ResourceSortField CurrentSort() => Sort switch
+    {
+        "下载量" => ResourceSortField.Downloads,
+        "最近更新" => ResourceSortField.Updated,
+        "最新发布" => ResourceSortField.Newest,
+        _ => ResourceSortField.Relevance,
     };
 
     private ModLoaderKind? CurrentLoader() => Loader switch
