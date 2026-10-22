@@ -18,6 +18,15 @@ public partial class SettingsPageViewModel : PageViewModelBase
     {
         _services = services;
         State = state;
+
+        // 主题变化时刷新“当前主题”文本。
+        state.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppState.Theme))
+            {
+                OnPropertyChanged(nameof(ThemeText));
+            }
+        };
     }
 
     /// <summary>共享设置。</summary>
@@ -29,6 +38,17 @@ public partial class SettingsPageViewModel : PageViewModelBase
     /// <summary>状态。</summary>
     [ObservableProperty]
     private string _status = "点击“探测 Java”以扫描本机运行时。";
+
+    /// <summary>当前主题文本。</summary>
+    public string ThemeText => State.Theme == "light" ? "当前：浅色" : "当前：深色";
+
+    /// <summary>使用深色主题。</summary>
+    [RelayCommand]
+    private void UseDarkTheme() => State.Theme = "dark";
+
+    /// <summary>使用浅色主题。</summary>
+    [RelayCommand]
+    private void UseLightTheme() => State.Theme = "light";
 
     /// <summary>设置文件路径。</summary>
     public string SettingsPath => Path.Combine(_services.DataDirectory, "ACL.config.json");
@@ -48,6 +68,7 @@ public partial class SettingsPageViewModel : PageViewModelBase
             PreferOfficialMirror = State.PreferOfficial,
             PlayerName = State.PlayerName,
             SelectedVersionId = State.SelectedVersionId,
+            Theme = State.Theme,
         };
 
         Result saved = _services.Settings.Save(settings);

@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <LinearGradientBrush x:Key="AclWallpaperBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+    <GradientStop Color="#EEF2FA" Offset="0" />
+    <GradientStop Color="#DCE6FA" Offset="1" />
+  </LinearGradientBrush>
+  <SolidColorBrush x:Key="AclOverlayBrush" Color="#00FFFFFF" />
+  <SolidColorBrush x:Key="AclSurfaceBrush" Color="#F2F4F9" />
+  <SolidColorBrush x:Key="AclCardBrush" Color="#F7FFFFFF" />
+  <SolidColorBrush x:Key="AclStrokeBrush" Color="#33202B45" />
+  <SolidColorBrush x:Key="AclStrokeStrongBrush" Color="#55202B45" />
+  <SolidColorBrush x:Key="AclTextBrush" Color="#161B26" />
+  <SolidColorBrush x:Key="AclMutedTextBrush" Color="#5F6B80" />
+  <SolidColorBrush x:Key="AclAccentBrush" Color="#0F9FB8" />
+  <SolidColorBrush x:Key="AclSecondaryTextBrush" Color="#3A4BD0" />
+  <SolidColorBrush x:Key="AclSelectionBrush" Color="#22202B45" />
+  <SolidColorBrush x:Key="AclBadgeBrush" Color="#1F202B45" />
+  <SolidColorBrush x:Key="AclDangerBrush" Color="#D93A40" />
+  <SolidColorBrush x:Key="AclNavSelectedBrush" Color="#2E3A8BFF" />
+  <SolidColorBrush x:Key="AclNavSelectedTextBrush" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="AclDarkCardBrush" Color="#F2FFFFFF" />
+  <SolidColorBrush x:Key="AclDarkStrokeBrush" Color="#33202B45" />
+  <SolidColorBrush x:Key="AclGhostBrush" Color="#14202B45" />    <LinearGradientBrush x:Key="AclPrimaryBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+      <GradientStop Color="#4F6BF5" Offset="0" />
+      <GradientStop Color="#22B8D8" Offset="1" />
+    </LinearGradientBrush>
+    <StreamGeometry x:Key="AclLogoGeometry">M0,44 L13,0 L26,44 L19,44 L13,19 L7,44 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconPlay">M4,2.5 L13.5,8 L4,13.5 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconDownload">M7.2,1.5 H8.8 V7 H11.5 L8,11.5 L4.5,7 H7.2 Z M2.5,12.6 H13.5 V14.4 H2.5 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconSettings">M2.5,3.6 H13.5 V5.4 H2.5 Z M2.5,7.1 H13.5 V8.9 H2.5 Z M2.5,10.6 H13.5 V12.4 H2.5 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconMore">M2.4,6.7 H4.6 V9.3 H2.4 Z M6.9,6.7 H9.1 V9.3 H6.9 Z M11.4,6.7 H13.6 V9.3 H11.4 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconGrid">M2.5,2.5 H7.5 V7.5 H2.5 Z M8.5,2.5 H13.5 V7.5 H8.5 Z M2.5,8.5 H7.5 V13.5 H2.5 Z M8.5,8.5 H13.5 V13.5 H8.5 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconFolder">M1.8,3.4 H6.4 L7.6,5 H14.2 V12.6 H1.8 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconRefresh">M8,2.4 A5.6,5.6 0 1 1 2.6,9.4 L4.2,9.1 A4,4 0 1 0 8,4 Z M7.1,1.4 L7.1,4.6 L10.3,3 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconMin">M2.6,7.2 H13.4 V8.8 H2.6 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconRestore">M2.6,2.6 H13.4 V4.2 H2.6 Z M2.6,2.6 H4.2 V13.4 H2.6 Z M11.8,2.6 H13.4 V13.4 H11.8 Z M2.6,11.8 H13.4 V13.4 H2.6 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconClose">M4.1,4.9 L4.9,4.1 L8,7.2 L11.1,4.1 L11.9,4.9 L8.8,8 L11.9,11.1 L11.1,11.9 L8,8.8 L4.9,11.9 L4.1,11.1 L7.2,8 Z</StreamGeometry>
+    <StreamGeometry x:Key="AclIconFullscreen">M2.4,2.4 H6 V4 H4 V6 H2.4 Z M10,2.4 H13.6 V6 H12 V4 H10 Z M2.4,10 H4 V12 H6 V13.6 H2.4 Z M12,10 H13.6 V13.6 H10 V12 H12 Z</StreamGeometry></ResourceDictionary>

@@ -12,10 +12,10 @@
         Background="Transparent"
         TransparencyLevelHint="Transparent">
 
-  <Border CornerRadius="14" ClipToBounds="True">
+  <Border x:Name="RootFrame" CornerRadius="14" ClipToBounds="True">
     <Panel>
       <!-- 壁纸背景 + 暗色覆盖 -->
-      <Border Background="{StaticResource AclWallpaperBrush}" />
+      <Border Background="{DynamicResource AclWallpaperBrush}" />
       <Border Background="#4D060C17" />
 
       <!-- ======== 常规界面 ======== -->
@@ -25,22 +25,22 @@
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" PointerPressed="OnTitleBarPressed">
           <StackPanel Orientation="Horizontal" Spacing="10" Margin="18,0,0,0" VerticalAlignment="Center">
             <Image Source="/Assets/logo-256.png" Width="26" Height="26" />
-            <TextBlock Text="ACL" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" VerticalAlignment="Center" />
+            <TextBlock Text="ACL" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AclTextBrush}" VerticalAlignment="Center" />
             <TextBlock Text="Minecraft 启动器" Classes="AclCaption" VerticalAlignment="Center" />
           </StackPanel>
 
           <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="0,0,12,0" VerticalAlignment="Center">
             <Button Classes="AclWindowButton" ToolTip.Tip="全屏仪表盘（F11）" Command="{Binding ToggleFullscreenCommand}">
-              <Path Data="{StaticResource AclIconFullscreen}" Width="15" Height="15" Stretch="Uniform" />
+              <Path Data="{DynamicResource AclIconFullscreen}" Width="15" Height="15" Stretch="Uniform" />
             </Button>
             <Button Classes="AclWindowButton" ToolTip.Tip="最小化" Click="OnMinimize">
-              <Path Data="{StaticResource AclIconMin}" Width="15" Height="15" Stretch="Uniform" />
+              <Path Data="{DynamicResource AclIconMin}" Width="15" Height="15" Stretch="Uniform" />
             </Button>
             <Button Classes="AclWindowButton" ToolTip.Tip="最大化 / 还原" Click="OnToggleMaximize">
-              <Path Data="{StaticResource AclIconRestore}" Width="14" Height="14" Stretch="Uniform" />
+              <Path Data="{DynamicResource AclIconRestore}" Width="14" Height="14" Stretch="Uniform" />
             </Button>
             <Button Classes="AclWindowButton danger" ToolTip.Tip="关闭" Click="OnClose">
-              <Path Data="{StaticResource AclIconClose}" Width="15" Height="15" Stretch="Uniform" />
+              <Path Data="{DynamicResource AclIconClose}" Width="15" Height="15" Stretch="Uniform" />
             </Button>
           </StackPanel>
         </Grid>
@@ -51,7 +51,7 @@
             <Border Classes="AclCard hoverable" Padding="16">
               <StackPanel Spacing="10">
                 <StackPanel Orientation="Horizontal" Spacing="12">
-                  <Border Width="42" Height="42" CornerRadius="999" Background="{StaticResource AclPrimaryBrush}">
+                  <Border Width="42" Height="42" CornerRadius="999" Background="{DynamicResource AclPrimaryBrush}">
                     <TextBlock Text="{Binding State.AvatarLetter}" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold"
                                HorizontalAlignment="Center" VerticalAlignment="Center" />
                   </Border>
@@ -132,7 +132,7 @@
 
             <Button Grid.Column="1" Classes="AclPrimary" Margin="8,0,0,0" VerticalAlignment="Center" Command="{Binding StartGameCommand}">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Path Data="{StaticResource AclIconPlay}" Width="12" Height="12" Stretch="Uniform" Fill="#FFFFFF" />
+                <Path Data="{DynamicResource AclIconPlay}" Width="12" Height="12" Stretch="Uniform" Fill="#FFFFFF" />
                 <TextBlock Text="开始游戏" />
               </StackPanel>
             </Button>
@@ -145,7 +145,7 @@
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
           <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
             <Image Source="/Assets/logo-256.png" Width="30" Height="30" />
-            <TextBlock Text="ACL" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
+            <TextBlock Text="ACL" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource AclTextBrush}" />
           </StackPanel>
 
           <ItemsControl Grid.Column="1" ItemsSource="{Binding Pages}" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -167,15 +167,15 @@
           </ItemsControl>
 
           <Button Grid.Column="2" Classes="AclWindowButton" ToolTip.Tip="退出全屏（Esc）" Command="{Binding ToggleFullscreenCommand}">
-            <Path Data="{StaticResource AclIconClose}" Width="15" Height="15" Stretch="Uniform" />
+            <Path Data="{DynamicResource AclIconClose}" Width="15" Height="15" Stretch="Uniform" />
           </Button>
         </Grid>
 
         <StackPanel Grid.Row="1" Spacing="16" VerticalAlignment="Center">
           <Border Classes="AclDarkCard" Padding="34">
             <StackPanel Spacing="12">
-              <TextBlock Text="欢迎回到 ACL" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AclTextBrush}" />
-              <TextBlock Text="完全自研的 Minecraft 启动器 · 内核与界面彻底解耦" FontSize="14" Foreground="{StaticResource AclMutedTextBrush}" />
+              <TextBlock Text="欢迎回到 ACL" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource AclTextBrush}" />
+              <TextBlock Text="完全自研的 Minecraft 启动器 · 内核与界面彻底解耦" FontSize="14" Foreground="{DynamicResource AclMutedTextBrush}" />
               <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
                 <Button Classes="AclPrimary" Padding="34,14" FontSize="15" Content="开始游戏" Command="{Binding StartGameCommand}" />
                 <Button Classes="AclGhost" Padding="30,14" FontSize="15" Content="安装版本"
@@ -196,8 +196,8 @@
                         Command="{Binding Select}" CommandParameter="{Binding}">
                   <Border Classes="AclDarkCard hoverable" Padding="20" MinHeight="140">
                     <StackPanel Spacing="8">
-                      <TextBlock Text="{Binding Label}" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
-                      <TextBlock Text="{Binding Page.Description}" FontSize="12" TextWrapping="Wrap" Foreground="{StaticResource AclMutedTextBrush}" />
+                      <TextBlock Text="{Binding Label}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AclTextBrush}" />
+                      <TextBlock Text="{Binding Page.Description}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource AclMutedTextBrush}" />
                     </StackPanel>
                   </Border>
                 </Button>
@@ -207,7 +207,7 @@
         </StackPanel>
 
         <TextBlock Grid.Row="2" Text="Esc 退出全屏 · F11 切换 · Ctrl+1..5 切换页面"
-                   Foreground="{StaticResource AclMutedTextBrush}" FontSize="12" HorizontalAlignment="Center" />
+                   Foreground="{DynamicResource AclMutedTextBrush}" FontSize="12" HorizontalAlignment="Center" />
       </Grid>
     </Panel>
   </Border>

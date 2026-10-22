@@ -20,4 +20,7 @@ public sealed record AclSettings
 
     /// <summary>上次选择的版本。</summary>
     public string? SelectedVersionId { get; init; }
+
+    /// <summary>主题：<c>dark</c> / <c>light</c> / <c>system</c>。</summary>
+    public string Theme { get; init; } = "dark";
 }

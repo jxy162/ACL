@@ -45,6 +45,10 @@ public partial class AppState : ObservableObject
     [ObservableProperty]
     private bool _preferOfficial = true;
 
+    /// <summary>主题（dark / light）。</summary>
+    [ObservableProperty]
+    private string _theme = "dark";
+
     /// <summary>当前选择的 Java 主目录。</summary>
     [ObservableProperty]
     private string? _selectedJavaHome;

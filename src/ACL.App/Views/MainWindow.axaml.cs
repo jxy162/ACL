@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -15,6 +16,13 @@ public partial class MainWindow : Window
         InitializeComponent();
         KeyDown += OnKeyDown;
         Closing += (_, _) => (DataContext as MainWindowViewModel)?.SaveSettingsOnExit();
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == WindowStateProperty)
+            {
+                RootFrame.CornerRadius = WindowState == WindowState.Maximized ? new CornerRadius(0) : new CornerRadius(14);
+            }
+        };
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);

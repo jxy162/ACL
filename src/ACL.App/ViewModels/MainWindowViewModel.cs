@@ -60,7 +60,19 @@ public partial class MainWindowViewModel : ObservableObject
             State.PreferOfficial = loaded.Value!.PreferOfficialMirror;
             State.PlayerName = loaded.Value!.PlayerName;
             _pendingVersionId = loaded.Value!.SelectedVersionId;
+            State.Theme = loaded.Value!.Theme;
         }
+
+        // 主题切换：立即应用到界面。
+        App.ApplyTheme(State.Theme);
+        State.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AppState.Theme))
+            {
+                App.ApplyTheme(State.Theme);
+                SaveSettingsOnExit();
+            }
+        };
     }
 
     /// <summary>共享设置。</summary>
