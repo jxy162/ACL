@@ -40,6 +40,27 @@ public class MainWindowTests
     }
 
     [Fact]
+    public async Task TitleBarStrip_IsHitTestable_ForDragging()
+    {
+        using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(App));
+        await session.Dispatch(
+            () =>
+            {
+                MainWindow window = new() { DataContext = new MainWindowViewModel() };
+                window.Show();
+
+                // 回归：标题栏条带内的空白处必须可命中（否则拖拽区只剩 LOGO/文字，触发区域过小）。
+                Avalonia.Controls.Grid? titleBar = window.FindControl<Avalonia.Controls.Grid>("TitleBar");
+                Assert.NotNull(titleBar);
+                Assert.True(titleBar!.Bounds.Width > 400, $"标题栏尺寸异常：{titleBar.Bounds}");
+
+                Assert.NotNull(titleBar!.Background);
+                Assert.True(titleBar.Bounds.Height >= 52, $"标题栏高度过小：{titleBar.Bounds.Height}");
+            },
+            CancellationToken.None);
+    }
+
+    [Fact]
     public async Task Window_SupportsMaximizeMinimizeRestore()
     {
         using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(App));

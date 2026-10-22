@@ -93,6 +93,10 @@ public partial class AppState : ObservableObject
     [ObservableProperty]
     private string _lastLogPath = string.Empty;
 
+    /// <summary>是否减弱动效。</summary>
+    [ObservableProperty]
+    private bool _reduceMotion;
+
     /// <summary>主题（dark / light）。</summary>
     [ObservableProperty]
     private string _theme = "dark";

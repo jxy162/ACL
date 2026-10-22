@@ -1,154 +1,94 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+  <!-- ===== M3 Expressive 组件层（自研实现） ===== -->
+
   <Style Selector="Window">
-    <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, Inter, sans-serif" />
+    <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI Variable, Segoe UI, Inter, sans-serif" />
   </Style>
 
-  <Style Selector="Border.AclCard">
-    <Setter Property="Background" Value="{DynamicResource AclCardBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AclStrokeBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="14" />
-    <Setter Property="BoxShadow" Value="0 6 20 0 #40000000" />
+  <!-- 形状与按压反馈：按下即反馈（Apple/M3 皆然） -->
+  <Style Selector="Button">
     <Setter Property="RenderTransform" Value="none" />
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="CubicEaseOut" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
+    <Setter Property="CornerRadius" Value="999" />
+  </Style>
+
+  <Style Selector="Button:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.97)" />
+  </Style>
+
+  <!-- 卡片：M3 大圆角 + 色调表面 + 轻投影 -->
+  <Style Selector="Border.AclCard">
+    <Setter Property="Background" Value="{DynamicResource AclSurfaceContainerHigh}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AclOutlineVariant}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="28" />
+    <Setter Property="BoxShadow" Value="0 6 22 0 #33000000" />
+    <Setter Property="RenderTransform" Value="none" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.18" Easing="CubicEaseOut" />
       </Transitions>
     </Setter>
   </Style>
 
   <Style Selector="Border.AclCard.hoverable:pointerover">
-    <Setter Property="RenderTransform" Value="scale(1.012)" />
+    <Setter Property="RenderTransform" Value="scale(1.014)" />
   </Style>
 
   <Style Selector="Border.AclDarkCard">
     <Setter Property="Background" Value="{DynamicResource AclDarkCardBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AclDarkStrokeBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AclOutlineVariant}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="16" />
-  </Style>
-
-  <Style Selector="TextBlock.AclPageTitle">
-    <Setter Property="Foreground" Value="{DynamicResource AclTextBrush}" />
-    <Setter Property="FontSize" Value="24" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-  </Style>
-
-  <Style Selector="TextBlock.AclSection">
-    <Setter Property="Foreground" Value="{DynamicResource AclTextBrush}" />
-    <Setter Property="FontSize" Value="15" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-  </Style>
-
-  <Style Selector="TextBlock.AclBody">
-    <Setter Property="Foreground" Value="{DynamicResource AclTextBrush}" />
-    <Setter Property="FontSize" Value="13" />
-  </Style>
-
-  <Style Selector="TextBlock.AclCaption">
-    <Setter Property="Foreground" Value="{DynamicResource AclMutedTextBrush}" />
-    <Setter Property="FontSize" Value="12" />
+    <Setter Property="CornerRadius" Value="28" />
   </Style>
 
   <Style Selector="Border.AclBadge">
-    <Setter Property="Background" Value="{DynamicResource AclBadgeBrush}" />
+    <Setter Property="Background" Value="{DynamicResource AclSecondaryContainer}" />
     <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="10,3" />
+    <Setter Property="Padding" Value="12,4" />
   </Style>
 
-  <!-- 底部导航：选中为浅色胶囊 + 深色文字（参考 LauncherX 的选中态） -->
-  <Style Selector="Button.AclNav">
+  <!-- 底部导航：M3 活动指示器（药丸）+ 状态层 -->
+  <Style Selector="Button.AclNav, Button.AclNavDark">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{DynamicResource AclMutedTextBrush}" />
     <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="22,9" />
+    <Setter Property="Padding" Value="20,9" />
     <Setter Property="FontSize" Value="14" />
     <Setter Property="BorderThickness" Value="0" />
   </Style>
 
-  <Style Selector="Button.AclNav /template/ ContentPresenter">
+  <Style Selector="Button.AclNav /template/ ContentPresenter, Button.AclNavDark /template/ ContentPresenter">
     <Setter Property="Transitions">
       <Transitions>
-        <BrushTransition Property="Background" Duration="0:0:0.15" />
+        <BrushTransition Property="Background" Duration="0:0:0.22" />
       </Transitions>
     </Setter>
   </Style>
 
+  <Style Selector="Button.AclNav:pointerover /template/ ContentPresenter, Button.AclNavDark:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclStateLayerHover}" />
+  </Style>
+
   <Style Selector="Button.AclNav:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AclSelectionBrush}" />
+    <Setter Property="Background" Value="{DynamicResource AclStateLayerHover}" />
   </Style>
 
-  <Style Selector="Button.AclNav.selected /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AclNavSelectedBrush}" />
+  <Style Selector="Button.AclNav.selected /template/ ContentPresenter, Button.AclNavDark.selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclIndicator}" />
   </Style>
 
-  <Style Selector="Button.AclNav.selected">
+  <Style Selector="Button.AclNav.selected, Button.AclNavDark.selected">
     <Setter Property="Foreground" Value="{DynamicResource AclNavSelectedTextBrush}" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
-  <Style Selector="Button.AclNavDark">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="{DynamicResource AclDarkMutedBrush}" />
-    <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="22,9" />
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="BorderThickness" Value="0" />
-  </Style>
-
-  <Style Selector="Button.AclNavDark.selected /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AclNavSelectedBrush}" />
-  </Style>
-
-  <Style Selector="Button.AclNavDark.selected">
-    <Setter Property="Foreground" Value="{DynamicResource AclNavSelectedTextBrush}" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-  </Style>
-
-  <Style Selector="Button.AclPrimary">
-    <Setter Property="Background" Value="{DynamicResource AclPrimaryBrush}" />
-    <Setter Property="Foreground" Value="#FFFFFF" />
-    <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="24,11" />
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="BorderThickness" Value="0" />
-  </Style>
-
-  <Style Selector="Button.AclGhost">
-    <Setter Property="Background" Value="{DynamicResource AclGhostBrush}" />
-    <Setter Property="Foreground" Value="{DynamicResource AclTextBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AclStrokeStrongBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="20,9" />
-    <Setter Property="FontSize" Value="13" />
-  </Style>
-
-  <Style Selector="Button.AclWindowButton">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="{DynamicResource AclTextBrush}" />
-    <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="Width" Value="38" />
-    <Setter Property="Height" Value="30" />
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="FontSize" Value="13" />
-    <Setter Property="HorizontalContentAlignment" Value="Center" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="BorderThickness" Value="0" />
-  </Style>
-
-  <Style Selector="Button.AclWindowButton:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AclSelectionBrush}" />
-  </Style>
-
-  <Style Selector="Button.AclWindowButton.danger:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="#E5484D" />
-  </Style>
-
-  <!-- 图标着色 -->
   <Style Selector="Button.AclNav Path, Button.AclNavDark Path, Button.AclWindowButton Path">
     <Setter Property="Fill" Value="{DynamicResource AclMutedTextBrush}" />
   </Style>
@@ -157,27 +97,124 @@
     <Setter Property="Fill" Value="{DynamicResource AclNavSelectedTextBrush}" />
   </Style>
 
+  <!-- 主按钮（Filled） -->
+  <Style Selector="Button.AclPrimary">
+    <Setter Property="Background" Value="{DynamicResource AclPrimaryBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AclOnPrimary}" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="24,11" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="Button.AclPrimary /template/ ContentPresenter">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.14" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Button.AclPrimary:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclPrimaryHover}" />
+  </Style>
+
+  <Style Selector="Button.AclPrimary:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclPrimaryPressed}" />
+  </Style>
+
+  <Style Selector="Button.AclPrimary Path">
+    <Setter Property="Fill" Value="{DynamicResource AclOnPrimary}" />
+  </Style>
+
+  <!-- 次级按钮（Tonal / Outlined） -->
+  <Style Selector="Button.AclGhost">
+    <Setter Property="Background" Value="{DynamicResource AclSecondaryContainer}" />
+    <Setter Property="Foreground" Value="{DynamicResource AclOnSecondaryContainer}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AclOutline}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="20,9" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+
+  <Style Selector="Button.AclGhost /template/ ContentPresenter">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.14" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Button.AclGhost:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclStateLayerHover}" />
+  </Style>
+
+  <Style Selector="Button.AclGhost Path">
+    <Setter Property="Fill" Value="{DynamicResource AclOnSecondaryContainer}" />
+  </Style>
+
+  <!-- 窗口按钮 -->
+  <Style Selector="Button.AclWindowButton">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource AclTextBrush}" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Width" Value="40" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="Button.AclWindowButton /template/ ContentPresenter">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.14" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Button.AclWindowButton:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclStateLayerHover}" />
+  </Style>
+
+  <Style Selector="Button.AclWindowButton.danger:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AclDangerBrush}" />
+  </Style>
+
   <Style Selector="Button.AclWindowButton.danger:pointerover Path">
     <Setter Property="Fill" Value="#FFFFFF" />
   </Style>
 
-  <Style Selector="Button.AclGhost Path">
-    <Setter Property="Fill" Value="{DynamicResource AclTextBrush}" />
+  <!-- 输入控件：M3 圆角与色调表面 -->
+  <Style Selector="TextBox, ComboBox, AutoCompleteBox">
+    <Setter Property="CornerRadius" Value="20" />
   </Style>
 
-  <!-- 版本/资源列表 -->
+  <Style Selector="CheckBox">
+    <Setter Property="Foreground" Value="{DynamicResource AclTextBrush}" />
+  </Style>
+
+  <!-- 列表 -->
   <Style Selector="ListBox.AclVersionList">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
   </Style>
 
   <Style Selector="ListBox.AclVersionList ListBoxItem">
-    <Setter Property="CornerRadius" Value="10" />
-    <Setter Property="Padding" Value="10,8" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Padding" Value="12,10" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.16" />
+      </Transitions>
+    </Setter>
   </Style>
 
   <Style Selector="ListBox.AclVersionList ListBoxItem:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AclSelectionBrush}" />
+    <Setter Property="Background" Value="{DynamicResource AclStateLayerHover}" />
   </Style>
 
 </Styles>

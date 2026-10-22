@@ -16,11 +16,27 @@
   <SolidColorBrush x:Key="AclSelectionBrush" Color="#22202B45" />
   <SolidColorBrush x:Key="AclBadgeBrush" Color="#1F202B45" />
   <SolidColorBrush x:Key="AclDangerBrush" Color="#D93A40" />
-  <SolidColorBrush x:Key="AclNavSelectedBrush" Color="#2E3A8BFF" />
-  <SolidColorBrush x:Key="AclNavSelectedTextBrush" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="AclNavSelectedBrush" Color="#DCE1FF" />
+  <SolidColorBrush x:Key="AclNavSelectedTextBrush" Color="#1B2260" />
   <SolidColorBrush x:Key="AclDarkCardBrush" Color="#F2FFFFFF" />
   <SolidColorBrush x:Key="AclDarkStrokeBrush" Color="#33202B45" />
-  <SolidColorBrush x:Key="AclGhostBrush" Color="#14202B45" />    <LinearGradientBrush x:Key="AclPrimaryBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+  <SolidColorBrush x:Key="AclGhostBrush" Color="#14202B45" />
+  <!-- M3 角色令牌（Expressive） -->
+  <SolidColorBrush x:Key="AclOnPrimary" Color="#FFFFFFFF" />
+  <SolidColorBrush x:Key="AclPrimaryContainer" Color="#DCE1FF" />
+  <SolidColorBrush x:Key="AclOnPrimaryContainer" Color="#1B2260" />
+  <SolidColorBrush x:Key="AclSecondaryContainer" Color="#E3E8F8" />
+  <SolidColorBrush x:Key="AclOnSecondaryContainer" Color="#25305A" />
+  <SolidColorBrush x:Key="AclSurfaceContainerLow" Color="#9EFFFFFF" />
+  <SolidColorBrush x:Key="AclSurfaceContainerHigh" Color="#E6FFFFFF" />
+  <SolidColorBrush x:Key="AclSurfaceContainerHighest" Color="#F7FFFFFF" />
+  <SolidColorBrush x:Key="AclOutline" Color="#4D202B45" />
+  <SolidColorBrush x:Key="AclOutlineVariant" Color="#26202B45" />
+  <SolidColorBrush x:Key="AclStateLayerHover" Color="#14202B45" />
+  <SolidColorBrush x:Key="AclStateLayerPressed" Color="#24202B45" />
+  <SolidColorBrush x:Key="AclPrimaryHover" Color="#4155D6" />
+  <SolidColorBrush x:Key="AclPrimaryPressed" Color="#3346BE" />
+  <SolidColorBrush x:Key="AclIndicator" Color="#DCE1FF" />    <LinearGradientBrush x:Key="AclPrimaryBrush" StartPoint="0%,0%" EndPoint="100%,100%">
       <GradientStop Color="#4F6BF5" Offset="0" />
       <GradientStop Color="#22B8D8" Offset="1" />
     </LinearGradientBrush>

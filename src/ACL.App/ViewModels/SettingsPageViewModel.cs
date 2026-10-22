@@ -69,6 +69,7 @@ public partial class SettingsPageViewModel : PageViewModelBase
             PlayerName = State.PlayerName,
             SelectedVersionId = State.SelectedVersionId,
             Theme = State.Theme,
+            ReduceMotion = State.ReduceMotion,
             PlayMinutes = new Dictionary<string, double>(State.PlayMinutes, StringComparer.Ordinal),
         };
 

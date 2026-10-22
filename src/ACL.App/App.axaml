@@ -200,6 +200,7 @@
                 <Button Classes="AclGhost" Content="深色" Command="{Binding UseDarkThemeCommand}" />
                 <Button Classes="AclGhost" Content="浅色" Command="{Binding UseLightThemeCommand}" />
               </StackPanel>
+              <CheckBox Content="减弱动效（减少位移与时长）" IsChecked="{Binding State.ReduceMotion}" />
             </StackPanel>
           </Border>
 
@@ -413,6 +414,7 @@
 
   <Application.Styles>
     <FluentTheme />
+    <StyleInclude Source="avares://ACL.App/Styles/Typography.axaml" />
     <StyleInclude Source="avares://ACL.App/Styles/Controls.axaml" />
   </Application.Styles>
 

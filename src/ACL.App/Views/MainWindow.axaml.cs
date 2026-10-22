@@ -86,6 +86,21 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>窗口级兜底：顶部条带内（且未被子控件处理）的按下同样触发拖拽 / 双击最大化。</summary>
+    private void OnWindowPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Handled)
+        {
+            return;
+        }
+
+        double y = e.GetPosition(this).Y;
+        if (y <= 58d)
+        {
+            OnTitleBarPressed(sender, e);
+        }
+    }
+
     private void OnTitleBarPressed(object? sender, PointerPressedEventArgs e)
     {
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)

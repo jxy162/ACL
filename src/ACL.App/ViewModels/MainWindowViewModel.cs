@@ -64,6 +64,7 @@ public partial class MainWindowViewModel : ObservableObject
             State.PlayerName = loaded.Value!.PlayerName;
             _pendingVersionId = loaded.Value!.SelectedVersionId;
             State.Theme = loaded.Value!.Theme;
+            State.ReduceMotion = loaded.Value!.ReduceMotion;
             foreach (KeyValuePair<string, double> play in loaded.Value!.PlayMinutes)
             {
                 State.PlayMinutes[play.Key] = play.Value;
@@ -73,13 +74,20 @@ public partial class MainWindowViewModel : ObservableObject
         State.PlaytimeChanged += (_, _) => SaveSettingsOnExit();
         State.ToastRequested += (_, text) => ShowToast(text);
 
-        // 主题切换：立即应用到界面。
+        // 主题与动效：立即应用到界面。
         App.ApplyTheme(State.Theme);
+        ACL.App.Animations.ExpressivePageTransition.ReduceMotion = State.ReduceMotion;
         State.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(AppState.Theme))
             {
                 App.ApplyTheme(State.Theme);
+                SaveSettingsOnExit();
+            }
+
+            if (e.PropertyName == nameof(AppState.ReduceMotion))
+            {
+                ACL.App.Animations.ExpressivePageTransition.ReduceMotion = State.ReduceMotion;
                 SaveSettingsOnExit();
             }
         };

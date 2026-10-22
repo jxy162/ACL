@@ -24,6 +24,9 @@ public sealed record AclSettings
     /// <summary>主题：<c>dark</c> / <c>light</c> / <c>system</c>。</summary>
     public string Theme { get; init; } = "dark";
 
+    /// <summary>是否减弱动效（可访问性）。</summary>
+    public bool ReduceMotion { get; init; }
+
     /// <summary>各版本累计游玩时长（分钟）。</summary>
     public Dictionary<string, double> PlayMinutes { get; init; } = [];
 }

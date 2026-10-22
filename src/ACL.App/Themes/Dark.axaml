@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <ImageBrush x:Key="AclWallpaperBrush" Source="avares://ACL.App/Assets/wallpaper.png" Stretch="UniformToFill" />
-  <SolidColorBrush x:Key="AclOverlayBrush" Color="#4D060C17" />
+  <SolidColorBrush x:Key="AclOverlayBrush" Color="#3D060C17" />
   <SolidColorBrush x:Key="AclSurfaceBrush" Color="#A60C1524" />
   <SolidColorBrush x:Key="AclCardBrush" Color="#B3121C2E" />
   <SolidColorBrush x:Key="AclStrokeBrush" Color="#26FFFFFF" />
@@ -13,11 +13,27 @@
   <SolidColorBrush x:Key="AclSelectionBrush" Color="#2EFFFFFF" />
   <SolidColorBrush x:Key="AclBadgeBrush" Color="#26FFFFFF" />
   <SolidColorBrush x:Key="AclDangerBrush" Color="#E5484D" />
-  <SolidColorBrush x:Key="AclNavSelectedBrush" Color="#EAF0FA" />
-  <SolidColorBrush x:Key="AclNavSelectedTextBrush" Color="#16202F" />
+  <SolidColorBrush x:Key="AclNavSelectedBrush" Color="#2F3F6E" />
+  <SolidColorBrush x:Key="AclNavSelectedTextBrush" Color="#DCE4FF" />
   <SolidColorBrush x:Key="AclDarkCardBrush" Color="#D916223A" />
   <SolidColorBrush x:Key="AclDarkStrokeBrush" Color="#2AFFFFFF" />
-  <SolidColorBrush x:Key="AclGhostBrush" Color="#1FFFFFFF" />    <LinearGradientBrush x:Key="AclPrimaryBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+  <SolidColorBrush x:Key="AclGhostBrush" Color="#1FFFFFFF" />
+  <!-- M3 角色令牌（Expressive） -->
+  <SolidColorBrush x:Key="AclOnPrimary" Color="#FFFFFFFF" />
+  <SolidColorBrush x:Key="AclPrimaryContainer" Color="#2A3A63" />
+  <SolidColorBrush x:Key="AclOnPrimaryContainer" Color="#DCE4FF" />
+  <SolidColorBrush x:Key="AclSecondaryContainer" Color="#1E2A45" />
+  <SolidColorBrush x:Key="AclOnSecondaryContainer" Color="#C6D2F0" />
+  <SolidColorBrush x:Key="AclSurfaceContainerLow" Color="#99101827" />
+  <SolidColorBrush x:Key="AclSurfaceContainerHigh" Color="#B3141F33" />
+  <SolidColorBrush x:Key="AclSurfaceContainerHighest" Color="#C7182540" />
+  <SolidColorBrush x:Key="AclOutline" Color="#4DFFFFFF" />
+  <SolidColorBrush x:Key="AclOutlineVariant" Color="#26FFFFFF" />
+  <SolidColorBrush x:Key="AclStateLayerHover" Color="#1FFFFFFF" />
+  <SolidColorBrush x:Key="AclStateLayerPressed" Color="#33FFFFFF" />
+  <SolidColorBrush x:Key="AclPrimaryHover" Color="#6E86FF" />
+  <SolidColorBrush x:Key="AclPrimaryPressed" Color="#3F55D8" />
+  <SolidColorBrush x:Key="AclIndicator" Color="#2F3F6E" />    <LinearGradientBrush x:Key="AclPrimaryBrush" StartPoint="0%,0%" EndPoint="100%,100%">
       <GradientStop Color="#4F6BF5" Offset="0" />
       <GradientStop Color="#22B8D8" Offset="1" />
     </LinearGradientBrush>

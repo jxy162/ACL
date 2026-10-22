@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:ACL.App.ViewModels"
+        xmlns:anim="using:ACL.App.Animations"
         x:Class="ACL.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="ACL"
@@ -14,16 +15,17 @@
         DragDrop.AllowDrop="True">
 
   <Border x:Name="RootFrame" CornerRadius="14" ClipToBounds="True">
-    <Panel>
+    <Panel PointerPressed="OnWindowPressed">
       <!-- 壁纸背景 + 暗色覆盖 -->
       <Border Background="{DynamicResource AclWallpaperBrush}" />
-      <Border Background="#4D060C17" />
+      <Border Background="{DynamicResource AclOverlayBrush}" />
 
       <!-- ======== 常规界面 ======== -->
-      <Grid RowDefinitions="54,*,Auto,80" IsVisible="{Binding !IsFullscreen}">
+      <Grid RowDefinitions="58,*,Auto,84" IsVisible="{Binding !IsFullscreen}">
 
-        <!-- 顶部栏 -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" PointerPressed="OnTitleBarPressed">
+        <!-- 顶部栏（整条为拖拽区：透明背景保证命中测试） -->
+        <Grid x:Name="TitleBar" Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Background="Transparent"
+              PointerPressed="OnTitleBarPressed">
           <StackPanel Orientation="Horizontal" Spacing="10" Margin="18,0,0,0" VerticalAlignment="Center">
             <Image Source="/Assets/logo-256.png" Width="26" Height="26" />
             <TextBlock Text="ACL" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AclTextBrush}" VerticalAlignment="Center" />
@@ -105,7 +107,7 @@
 
           <TransitioningContentControl Grid.Column="1" Margin="14,0,0,0" Content="{Binding CurrentPage}">
             <TransitioningContentControl.PageTransition>
-              <CrossFade Duration="0:0:0.18" />
+              <anim:ExpressivePageTransition Duration="0:0:0.30" />
             </TransitioningContentControl.PageTransition>
           </TransitioningContentControl>
         </Grid>
@@ -148,8 +150,8 @@
       </Grid>
 
       <!-- 轻提示（Toast） -->
-      <Border Classes="AclCard" CornerRadius="999" Padding="20,10" HorizontalAlignment="Center" VerticalAlignment="Top"
-              Margin="0,62,0,0"
+      <Border Classes="AclCard" CornerRadius="999" Padding="22,11" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+              Margin="0,0,0,96"
               IsVisible="{Binding Toast, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
         <TextBlock Text="{Binding Toast}" Classes="AclBody" />
       </Border>
