@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using ACL.Core.Launch;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ACL.App.ViewModels;
@@ -66,6 +67,31 @@ public partial class AppState : ObservableObject
     /// <summary>读取某版本累计时长。</summary>
     public double GetPlayMinutes(string versionId)
         => PlayMinutes.TryGetValue(versionId, out double minutes) ? minutes : 0;
+
+    /// <summary>轻提示请求事件。</summary>
+    public event EventHandler<string>? ToastRequested;
+
+    /// <summary>请求显示轻提示。</summary>
+    public void RequestToast(string text) => ToastRequested?.Invoke(this, text);
+
+    /// <summary>最近一次运行结果变化事件。</summary>
+
+    public event EventHandler? LastExitChanged;
+
+    /// <summary>记录最近一次运行结果。</summary>
+    public void SetLastExit(GameExitInfo exit)
+    {
+        LastExit = exit;
+        LastExitChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>最近一次游戏退出的信息。</summary>
+    [ObservableProperty]
+    private GameExitInfo? _lastExit;
+
+    /// <summary>最近一次运行的日志文件路径。</summary>
+    [ObservableProperty]
+    private string _lastLogPath = string.Empty;
 
     /// <summary>主题（dark / light）。</summary>
     [ObservableProperty]

@@ -140,6 +140,67 @@ public sealed class CurseForgeClient : IResourceIndex
         return Result<IReadOnlyList<ResourceFile>>.Success(files);
     }
 
+    /// <summary>按文件 ID 批量获取文件（用于解析整合包中缺失的直链）。</summary>
+    public async Task<Result<IReadOnlyList<ResourceFile>>> GetFilesByIdsAsync(
+        IReadOnlyList<int> fileIds,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(fileIds);
+        if (fileIds.Count == 0)
+        {
+            return Result<IReadOnlyList<ResourceFile>>.Success([]);
+        }
+
+        string body = System.Text.Json.JsonSerializer.Serialize(new { fileIds });
+        string? apiKey = _secrets.GetSecret(ApiKeySecretName);
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            return Result<IReadOnlyList<ResourceFile>>.Failure(ErrorCode.ConfigInvalid, "缺少 CurseForge API Key。");
+        }
+
+        Dictionary<string, string> headers = new(StringComparer.Ordinal)
+        {
+            ["x-api-key"] = apiKey,
+            ["Accept"] = "application/json",
+        };
+
+        Result<HttpResponse> sent = await _http
+            .SendAsync(new HttpRequest(new Uri(_baseUri, "mods/files"), HttpVerb.Post, headers, null, HttpContentSpec.Json(body)), cancellationToken)
+            .ConfigureAwait(false);
+        if (!sent.IsSuccess)
+        {
+            return Result<IReadOnlyList<ResourceFile>>.Failure(sent.Code, sent.Detail);
+        }
+
+        using HttpResponse response = sent.Value!;
+        if (response.StatusCode == 429)
+        {
+            return Result<IReadOnlyList<ResourceFile>>.Failure(ErrorCode.RateLimited, "CurseForge 限流。");
+        }
+
+        if (response.StatusCode == 403)
+        {
+            return Result<IReadOnlyList<ResourceFile>>.Failure(ErrorCode.AuthDenied, "CurseForge 拒绝访问。");
+        }
+
+        if (!response.IsSuccess)
+        {
+            return Result<IReadOnlyList<ResourceFile>>.Failure(ErrorCode.Network, $"CurseForge HTTP {response.StatusCode}");
+        }
+
+        using JsonDocument document = JsonDocument.Parse(await response.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+        List<ResourceFile> files = [];
+        foreach (JsonElement item in EnumerateData(document.RootElement))
+        {
+            if (ParseFile(item) is { } file)
+            {
+                files.Add(file);
+            }
+        }
+
+        return Result<IReadOnlyList<ResourceFile>>.Success(files);
+    }
+
     private static ResourceProject ParseProject(JsonElement element)
     {
         JsonElement primary = TryFirstFile(element);
@@ -221,7 +282,8 @@ public sealed class CurseForgeClient : IResourceIndex
             GetLong(element, "fileLength") ?? 0,
             ReadStringArray(element, "gameVersions"),
             loaders,
-            null);
+            null,
+            fileId?.ToString(CultureInfo.InvariantCulture));
     }
 
     private async Task<Result<string>> GetStringAsync(Uri uri, CancellationToken cancellationToken)

@@ -99,6 +99,9 @@ public sealed class AppServices
     /// <summary>启动器数据目录（便携：与启动器同目录）。</summary>
     public string DataDirectory { get; }
 
+    /// <summary>日志目录。</summary>
+    public string LogDirectory => Path.Combine(DataDirectory, "logs");
+
     /// <summary>游戏根目录（默认同目录 <c>.minecraft</c>）。</summary>
     public string GameDirectory { get; }
 
@@ -141,6 +144,7 @@ public sealed class AppServices
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Eclipse Adoptium"),
             ]);
 
+        CurseForgeClient curseForge = new(http, secrets);
         return new AppServices(
             http,
             fileSystem,
@@ -153,9 +157,9 @@ public sealed class AppServices
             new LaunchPlanner(),
             new NativesExtractor(fileSystem),
             new GameMonitor(new GameProcessLauncher()),
-            new ModpackInstaller(fileSystem, download),
+            new ModpackInstaller(fileSystem, download, null, new CurseForgeModpackFileResolver(curseForge)),
             new ModrinthClient(http),
-            new CurseForgeClient(http, secrets),
+            curseForge,
             new PortableSettingsStore(fileSystem, Path.Combine(dataDirectory, "ACL.config.json")),
             dataDirectory,
             gameDirectory);

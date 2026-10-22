@@ -74,6 +74,7 @@ public partial class SettingsPageViewModel : PageViewModelBase
 
         Result saved = _services.Settings.Save(settings);
         SettingsStatus = saved.IsSuccess ? $"已保存到 {SettingsPath}" : $"保存失败：{saved.Code}";
+        State.RequestToast(saved.IsSuccess ? "设置已保存" : $"保存失败：{saved.Code}");
     }
 
     /// <summary>数据目录。</summary>

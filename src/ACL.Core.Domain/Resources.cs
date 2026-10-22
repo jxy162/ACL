@@ -73,6 +73,7 @@ public sealed record ResourceProject(
 /// <param name="GameVersions">支持的游戏版本。</param>
 /// <param name="Loaders">支持的加载器。</param>
 /// <param name="ReleaseType">发布类型（release / beta / alpha）。</param>
+/// <param name="SourceId">来源站的文件 ID（如 CurseForge fileId），用于精确回映射。</param>
 public sealed record ResourceFile(
     string FileName,
     Uri Url,
@@ -81,7 +82,8 @@ public sealed record ResourceFile(
     long Size,
     IReadOnlyList<string> GameVersions,
     IReadOnlyList<ModLoaderKind> Loaders,
-    string? ReleaseType)
+    string? ReleaseType,
+    string? SourceId = null)
 {
     /// <summary>首选校验规格（优先 SHA-512，其次 SHA-1）。</summary>
     public HashSpec? PreferredHash

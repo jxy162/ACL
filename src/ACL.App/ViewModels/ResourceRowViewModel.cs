@@ -31,6 +31,10 @@ public partial class ResourceRowViewModel : ObservableObject
     [ObservableProperty]
     private string _status = string.Empty;
 
+    /// <summary>图标（异步加载）。</summary>
+    [ObservableProperty]
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+
     /// <summary>安装命令（由页面注入）。</summary>
     public ICommand? Install { get; set; }
 }

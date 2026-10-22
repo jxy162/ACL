@@ -41,6 +41,7 @@ public partial class MainWindowViewModel : ObservableObject
             new NavItem("games", "M2.5,3 H6.5 V6 H2.5 Z M9.5,3 H13.5 V6 H9.5 Z M2.5,10 H6.5 V13 H2.5 Z M9.5,10 H13.5 V13 H9.5 Z", new GameListPageViewModel(services, State, StartVersion)),
             new NavItem("download", "M7.2,1.5 H8.8 V7 H11.5 L8,11.5 L4.5,7 H7.2 Z M2.5,12.6 H13.5 V14.4 H2.5 Z", new DownloadPageViewModel(services, State)),
             new NavItem("resources", "M2.5,2.5 H7.5 V7.5 H2.5 Z M8.5,2.5 H13.5 V7.5 H8.5 Z M2.5,8.5 H7.5 V13.5 H2.5 Z M8.5,8.5 H13.5 V13.5 H8.5 Z", new ResourcePageViewModel(services, State)),
+            new NavItem("dashboard", "M2.5,9 H5.5 V13.5 H2.5 Z M6.8,5 H9.8 V13.5 H6.8 Z M11.1,2.5 H14.1 V13.5 H11.1 Z", new DashboardPageViewModel(services, State)),
             new NavItem("settings", "M2.5,3.6 H13.5 V5.4 H2.5 Z M2.5,7.1 H13.5 V8.9 H2.5 Z M2.5,10.6 H13.5 V12.4 H2.5 Z", new SettingsPageViewModel(services, State)),
             new NavItem("more", "M2.4,6.7 H4.6 V9.3 H2.4 Z M6.9,6.7 H9.1 V9.3 H6.9 Z M11.4,6.7 H13.6 V9.3 H11.4 Z", new MorePageViewModel(services)),
         ];
@@ -70,6 +71,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
 
         State.PlaytimeChanged += (_, _) => SaveSettingsOnExit();
+        State.ToastRequested += (_, text) => ShowToast(text);
 
         // 主题切换：立即应用到界面。
         App.ApplyTheme(State.Theme);
@@ -140,6 +142,11 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 games.ApplyFilter();
             }
+
+            if (item.Page is DashboardPageViewModel dashboard)
+            {
+                dashboard.Refresh();
+            }
         }
     }
 
@@ -195,7 +202,31 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>轻提示文本（自动消失）。</summary>
+    [ObservableProperty]
+    private string _toast = string.Empty;
+
+    private Avalonia.Threading.DispatcherTimer? _toastTimer;
+
+    /// <summary>显示一条轻提示。</summary>
+    public void ShowToast(string text)
+    {
+        Toast = text;
+        _toastTimer ??= new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+        _toastTimer.Stop();
+        _toastTimer.Tick -= OnToastTick;
+        _toastTimer.Tick += OnToastTick;
+        _toastTimer.Start();
+    }
+
+    private void OnToastTick(object? sender, EventArgs e)
+    {
+        _toastTimer?.Stop();
+        Toast = string.Empty;
+    }
+
     /// <summary>整合包导入状态（拖入文件后显示）。</summary>
+
     [ObservableProperty]
     private string _importStatus = string.Empty;
 
@@ -238,12 +269,18 @@ public partial class MainWindowViewModel : ObservableObject
         ImportStatus = installed.IsSuccess
             ? $"已导入 {manifest.Name}：覆盖文件 {installed.Value!.OverridesCopied} 个，下载 {installed.Value!.Downloaded.Count} 个，待解析 {installed.Value!.Unresolved.Count} 个。"
             : $"导入失败：{installed.Code}（{installed.Detail}）";
+        ShowToast(ImportStatus);
 
         foreach (NavItem item in Pages)
         {
             if (item.Page is GameListPageViewModel games)
             {
                 games.ApplyFilter();
+            }
+
+            if (item.Page is DashboardPageViewModel dashboard)
+            {
+                dashboard.Refresh();
             }
         }
     }
@@ -269,6 +306,8 @@ public partial class MainWindowViewModel : ObservableObject
                 settings.SaveSettings();
             }
         }
+
+        ShowToast("设置已保存");
     }
 
     /// <summary>数据目录（关于信息）。</summary>

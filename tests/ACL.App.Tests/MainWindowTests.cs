@@ -35,7 +35,7 @@ public class MainWindowTests
     {
         MainWindowViewModel vm = new();
 
-        Assert.Equal(["launch", "games", "download", "resources", "settings", "more"], vm.Pages.Select(page => page.Key));
+        Assert.Equal(["launch", "games", "download", "resources", "dashboard", "settings", "more"], vm.Pages.Select(page => page.Key));
     }
 
     [Fact]

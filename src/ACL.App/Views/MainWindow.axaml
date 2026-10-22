@@ -147,6 +147,12 @@
         </Border>
       </Grid>
 
+      <!-- 轻提示（Toast） -->
+      <Border Classes="AclCard" CornerRadius="999" Padding="20,10" HorizontalAlignment="Center" VerticalAlignment="Top"
+              Margin="0,62,0,0"
+              IsVisible="{Binding Toast, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Text="{Binding Toast}" Classes="AclBody" />
+      </Border>
       <!-- ======== 全屏仪表盘 ======== -->
       <Grid RowDefinitions="76,*,Auto" Margin="30,18,30,20" IsVisible="{Binding IsFullscreen}">
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">

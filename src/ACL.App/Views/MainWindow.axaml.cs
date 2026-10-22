@@ -3,7 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
+using Avalonia.Controls;
 using ACL.App.ViewModels;
 
 namespace ACL.App.Views;
@@ -42,7 +44,7 @@ public partial class MainWindow : Window
             vm.ToggleFullscreenCommand.Execute(null);
             e.Handled = true;
         }
-        else if (e.KeyModifiers == KeyModifiers.Control && e.Key is >= Key.D1 and <= Key.D6)
+        else if (e.KeyModifiers == KeyModifiers.Control && e.Key is >= Key.D1 and <= Key.D7)
         {
             int index = e.Key - Key.D1;
             if (index < vm.Pages.Count)
@@ -83,9 +85,25 @@ public partial class MainWindow : Window
 
     private void OnTitleBarPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            return;
+        }
+
+        // 双击标题栏：最大化 / 还原。
+        if (e.ClickCount == 2)
+        {
+            OnToggleMaximize(this, new RoutedEventArgs());
+            return;
+        }
+
+        BeginMoveDrag(e);
+
+        // 贴边吸附：拖动结束后贴近屏幕顶部 → 最大化。
+        Screen? screen = Screens.ScreenFromWindow(this);
+        if (screen is not null && WindowState == WindowState.Normal && Position.Y <= screen.WorkingArea.Y + 6)
+        {
+            WindowState = WindowState.Maximized;
         }
     }
 

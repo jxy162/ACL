@@ -4,6 +4,7 @@ using ACL.Core.Abstractions;
 using ACL.Core.Domain;
 using ACL.Core.Download;
 using ACL.Core.Resources;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -45,8 +46,16 @@ public partial class ResourcePageViewModel : PageViewModelBase
     /// <summary>排序方式。</summary>
     public ObservableCollection<string> Sorts { get; } = ["相关度", "下载量", "最近更新", "最新发布"];
 
-    /// <summary>搜索结果。</summary>
+    /// <summary>搜索结果（已按筛选条件过滤）。</summary>
     public ObservableCollection<ResourceRowViewModel> Results { get; } = [];
+
+    private readonly List<ResourceRowViewModel> _allResults = [];
+
+    /// <summary>仅显示与当前游戏版本匹配的结果。</summary>
+    [ObservableProperty]
+    private bool _matchCurrentVersion;
+
+    partial void OnMatchCurrentVersionChanged(bool value) => ApplyResultFilter();
 
     /// <summary>来源。</summary>
     [ObservableProperty]
@@ -121,12 +130,15 @@ public partial class ResourcePageViewModel : PageViewModelBase
                 return;
             }
 
+            _allResults.Clear();
             foreach (ResourceProject project in result.Value!.Projects)
             {
-                Results.Add(new ResourceRowViewModel(project) { Install = InstallCommand });
+                _allResults.Add(new ResourceRowViewModel(project) { Install = InstallCommand });
             }
 
+            ApplyResultFilter();
             Status = $"共 {result.Value!.Total} 条结果，已显示 {Results.Count} 条。";
+            _ = LoadIconsAsync();
         }
         finally
         {
@@ -176,6 +188,60 @@ public partial class ResourcePageViewModel : PageViewModelBase
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private void ApplyResultFilter()
+    {
+        Results.Clear();
+        string? version = string.IsNullOrWhiteSpace(GameVersion) ? null : GameVersion;
+        foreach (ResourceRowViewModel row in _allResults)
+        {
+            if (MatchCurrentVersion && version is not null
+                && !row.Project.GameVersions.Any(v => string.Equals(v, version, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            Results.Add(row);
+        }
+    }
+
+    /// <summary>并发拉取图标缩略图（失败忽略）。</summary>
+    private async Task LoadIconsAsync()
+    {
+        foreach (ResourceRowViewModel row in _allResults)
+        {
+            if (row.Icon is not null || string.IsNullOrWhiteSpace(row.Project.IconUrl)
+                || !Uri.TryCreate(row.Project.IconUrl, UriKind.Absolute, out Uri? uri))
+            {
+                continue;
+            }
+
+            try
+            {
+                Result<HttpResponse> sent = await _services.Http.SendAsync(new HttpRequest(uri)).ConfigureAwait(true);
+                if (!sent.IsSuccess || sent.Value is null)
+                {
+                    continue;
+                }
+
+                using HttpResponse response = sent.Value;
+                if (response.Content is null)
+                {
+                    continue;
+                }
+
+                using MemoryStream buffer = new();
+                await response.Content.CopyToAsync(buffer).ConfigureAwait(true);
+                buffer.Position = 0;
+                Avalonia.Media.Imaging.Bitmap bitmap = new(buffer);
+                Dispatcher.UIThread.Post(() => row.Icon = bitmap);
+            }
+            catch (Exception ex) when (ex is IOException or ArgumentException or NotSupportedException)
+            {
+                // 图标加载失败不影响检索。
+            }
         }
     }
 

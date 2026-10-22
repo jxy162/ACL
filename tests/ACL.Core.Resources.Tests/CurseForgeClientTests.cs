@@ -84,6 +84,35 @@ public class CurseForgeClientTests
     }
 
     [Fact]
+    public async Task GetFilesByIds_PostsAndParses()
+    {
+        const string json = """
+        { "data": [ { "id": 456789, "fileName": "jei-1.20.1.jar", "downloadUrl": "https://edge/file.jar", "fileLength": 10, "hashes": [] } ] }
+        """;
+        StubHttpTransport http = new StubHttpTransport().OnPrefixJson("https://stub/cf/v1/mods/files", json);
+        CurseForgeClient client = new(http, Secrets(), BaseUri);
+
+        Result<IReadOnlyList<ResourceFile>> result = await client.GetFilesByIdsAsync([456789]);
+
+        Assert.True(result.IsSuccess, result.Code + ": " + result.Detail);
+        ResourceFile file = Assert.Single(result.Value!);
+        Assert.Equal("jei-1.20.1.jar", file.FileName);
+        Assert.Equal("456789", file.SourceId);
+        Assert.Equal(HttpVerb.Post, http.LastRequest!.Verb);
+    }
+
+    [Fact]
+    public async Task GetFilesByIds_EmptyInput_ReturnsEmpty()
+    {
+        CurseForgeClient client = new(new StubHttpTransport(), Secrets(), BaseUri);
+
+        Result<IReadOnlyList<ResourceFile>> result = await client.GetFilesByIdsAsync([]);
+
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value!);
+    }
+
+    [Fact]
     public async Task MissingApiKey_ReturnsConfigInvalid()
     {
         CurseForgeClient client = new(new StubHttpTransport(), new StubSecretProvider(null), BaseUri);

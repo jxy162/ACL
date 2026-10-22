@@ -129,6 +129,7 @@ public partial class LaunchPageViewModel : PageViewModelBase
 
         IsBusy = true;
         Status = "准备中…";
+        Log.Add($"[1/4] 读取版本 JSON：{_state.SelectedVersionId ?? "未选择"}");
         try
         {
             string versionId = _state.SelectedVersionId ?? string.Empty;
@@ -145,6 +146,7 @@ public partial class LaunchPageViewModel : PageViewModelBase
                 return;
             }
 
+            Log.Add("[2/4] 选择 Java 运行时…");
             JavaRuntime? java = await ResolveJavaAsync(version.Value!).ConfigureAwait(true);
             if (java is null)
             {
@@ -181,10 +183,20 @@ public partial class LaunchPageViewModel : PageViewModelBase
                 _services.Monitor,
                 _services.FileSystem);
 
+            Log.Add("[3/4] 补齐文件 → 解压 natives → 启动进程…");
+            string lastStage = string.Empty;
             UiProgressSink sink = new(report =>
             {
                 Progress = report.Fraction;
                 Status = report.Stage;
+                if (!string.Equals(report.Stage, lastStage, StringComparison.Ordinal))
+                {
+                    lastStage = report.Stage;
+                    if (Log.Count < 200)
+                    {
+                        Log.Add($"[进度] {report.Stage} {report.Fraction:P0}");
+                    }
+                }
             });
 
             Result<GameExitInfo> result = await orchestrator
@@ -193,18 +205,44 @@ public partial class LaunchPageViewModel : PageViewModelBase
 
             if (result.IsSuccess)
             {
-                _state.AddPlayMinutes(versionId, result.Value!.Duration.TotalMinutes);
-                Status = $"游戏已退出：{result.Value!.State}（{result.Value!.Reason}），本次 {result.Value!.Duration.TotalMinutes:F1} 分钟";
+                GameExitInfo exit = result.Value!;
+                _state.AddPlayMinutes(versionId, exit.Duration.TotalMinutes);
+                _state.SetLastExit(exit);
+                PersistLog(exit.LogTail);
+                Status = $"游戏已退出：{exit.State}（{exit.Reason}），本次 {exit.Duration.TotalMinutes:F1} 分钟";
             }
             else
             {
                 Status = $"启动失败：{result.Code}";
             }
-            Log.Add($"[launch] {Status}");
+
+            Log.Add($"[4/4] {Status}");
         }
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private void PersistLog(string? logTail)
+    {
+        if (string.IsNullOrEmpty(logTail))
+        {
+            return;
+        }
+
+        try
+        {
+            _services.FileSystem.CreateDirectory(_services.LogDirectory);
+            string path = Path.Combine(_services.LogDirectory, "last-launch.log");
+            using Stream stream = _services.FileSystem.OpenWrite(path, append: false);
+            using StreamWriter writer = new(stream, new System.Text.UTF8Encoding(false));
+            writer.Write(logTail);
+            _state.LastLogPath = path;
+        }
+        catch (IOException)
+        {
+            // 日志落盘失败不影响启动流程。
         }
     }
 
