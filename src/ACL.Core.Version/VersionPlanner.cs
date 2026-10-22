@@ -66,20 +66,14 @@ public sealed class VersionPlanner
 
     private static void AddLibraryArtifact(LibraryRef library, InstallTargets targets, List<DownloadItem> downloads, List<string> warnings)
     {
-        DownloadArtifact? artifact = library.Downloads?.Artifact;
-
-        string? relative = artifact?.Path;
+        string? relative = LibraryPaths.ArtifactRelativePath(library);
         if (relative is null)
         {
-            if (!TryRelativePath(library.Name, out string derived, out string? error))
-            {
-                warnings.Add(error!);
-                return;
-            }
-
-            relative = derived;
+            warnings.Add($"库缺少可解析的路径：{library.Name}");
+            return;
         }
 
+        DownloadArtifact? artifact = library.Downloads?.Artifact;
         Uri? url = artifact?.Url ?? CombineUrl(library.Url, relative);
         if (url is null)
         {
@@ -93,7 +87,8 @@ public sealed class VersionPlanner
 
     private static void AddLibraryNatives(LibraryRef library, InstallTargets targets, OsSpec os, List<DownloadItem> downloads)
     {
-        if (library.Natives is null || !library.Natives.TryGetValue(os.Name, out string? classifier))
+        string? classifier = LibraryPaths.NativesClassifier(library, os.Name);
+        if (classifier is null)
         {
             return;
         }
@@ -110,22 +105,6 @@ public sealed class VersionPlanner
 
         string path = Path.Combine(targets.LibrariesDir, native.Path.Replace('/', Path.DirectorySeparatorChar));
         downloads.Add(new DownloadItem(native.Url, [], path, ToHash(native.Sha1), native.Size));
-    }
-
-    private static bool TryRelativePath(string name, out string relative, out string? error)
-    {
-        try
-        {
-            relative = MavenCoordinates.Parse(name).RelativePath;
-            error = null;
-            return true;
-        }
-        catch (FormatException ex)
-        {
-            relative = string.Empty;
-            error = ex.Message;
-            return false;
-        }
     }
 
     private static Uri? CombineUrl(string? baseUrl, string relative)

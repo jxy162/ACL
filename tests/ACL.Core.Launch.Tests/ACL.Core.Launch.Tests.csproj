@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ACL.Core.Launch\ACL.Core.Launch.csproj" />
+    <ProjectReference Include="..\ACL.Testing\ACL.Testing.csproj" />
   </ItemGroup>
 
 </Project>
