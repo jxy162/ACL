@@ -1,11 +1,29 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/ACL.App/ACL.App.csproj" />
+    <Project Path="src/ACL.Application/ACL.Application.csproj" />
+    <Project Path="src/ACL.Cli/ACL.Cli.csproj" />
     <Project Path="src/ACL.Core.Abstractions/ACL.Core.Abstractions.csproj" />
+    <Project Path="src/ACL.Core.Auth/ACL.Core.Auth.csproj" />
+    <Project Path="src/ACL.Core.Diagnostics/ACL.Core.Diagnostics.csproj" />
     <Project Path="src/ACL.Core.Domain/ACL.Core.Domain.csproj" />
+    <Project Path="src/ACL.Core.Download/ACL.Core.Download.csproj" />
+    <Project Path="src/ACL.Core.Java/ACL.Core.Java.csproj" />
+    <Project Path="src/ACL.Core.Launch/ACL.Core.Launch.csproj" />
+    <Project Path="src/ACL.Core.Modpack/ACL.Core.Modpack.csproj" />
+    <Project Path="src/ACL.Core.Resources/ACL.Core.Resources.csproj" />
     <Project Path="src/ACL.Core.Tasks/ACL.Core.Tasks.csproj" />
+    <Project Path="src/ACL.Core.Version/ACL.Core.Version.csproj" />
+    <Project Path="src/ACL.Infrastructure/ACL.Infrastructure.csproj" />
+    <Project Path="src/ACL.Platform.Unix/ACL.Platform.Unix.csproj" />
+    <Project Path="src/ACL.Platform.Windows/ACL.Platform.Windows.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ACL.Core.Auth.Tests/ACL.Core.Auth.Tests.csproj" />
     <Project Path="tests/ACL.Core.Domain.Tests/ACL.Core.Domain.Tests.csproj" />
+    <Project Path="tests/ACL.Core.Download.Tests/ACL.Core.Download.Tests.csproj" />
+    <Project Path="tests/ACL.Core.Launch.Tests/ACL.Core.Launch.Tests.csproj" />
     <Project Path="tests/ACL.Core.Tasks.Tests/ACL.Core.Tasks.Tests.csproj" />
+    <Project Path="tests/ACL.Integration.Tests/ACL.Integration.Tests.csproj" />
   </Folder>
 </Solution>

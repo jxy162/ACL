@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ACL.Core.Abstractions\ACL.Core.Abstractions.csproj" />
+    <ProjectReference Include="..\ACL.Core.Domain\ACL.Core.Domain.csproj" />
+    <ProjectReference Include="..\ACL.Core.Tasks\ACL.Core.Tasks.csproj" />
+    <ProjectReference Include="..\ACL.Core.Download\ACL.Core.Download.csproj" />
+    <ProjectReference Include="..\ACL.Core.Version\ACL.Core.Version.csproj" />
+    <ProjectReference Include="..\ACL.Core.Java\ACL.Core.Java.csproj" />
+    <ProjectReference Include="..\ACL.Core.Auth\ACL.Core.Auth.csproj" />
+    <ProjectReference Include="..\ACL.Core.Launch\ACL.Core.Launch.csproj" />
+    <ProjectReference Include="..\ACL.Core.Resources\ACL.Core.Resources.csproj" />
+    <ProjectReference Include="..\ACL.Core.Modpack\ACL.Core.Modpack.csproj" />
+    <ProjectReference Include="..\ACL.Core.Diagnostics\ACL.Core.Diagnostics.csproj" />
+  </ItemGroup>
+
+</Project>

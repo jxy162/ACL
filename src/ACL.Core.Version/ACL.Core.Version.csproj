@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ACL.Core.Abstractions\ACL.Core.Abstractions.csproj" />
+    <ProjectReference Include="..\ACL.Core.Domain\ACL.Core.Domain.csproj" />
+    <ProjectReference Include="..\ACL.Core.Tasks\ACL.Core.Tasks.csproj" />
+    <ProjectReference Include="..\ACL.Core.Download\ACL.Core.Download.csproj" />
+  </ItemGroup>
+
+</Project>
