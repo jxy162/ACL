@@ -51,6 +51,12 @@ public sealed class InMemoryFileSystem : IFileSystem
 
     public IEnumerable<string> EnumerateFiles(string path, bool recursive = false) => _files.Keys;
 
+    public IEnumerable<string> EnumerateDirectories(string path, bool recursive = false)
+    {
+        string prefix = Key(path) + "/";
+        return _directories.Where(d => d.StartsWith(prefix, StringComparison.Ordinal) || d == Key(path));
+    }
+
     private static string Key(string path) => path.Replace('\\', '/').TrimEnd('/');
 
     private sealed class CommittingStream : MemoryStream

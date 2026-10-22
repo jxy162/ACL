@@ -41,4 +41,8 @@ public sealed class PhysicalFileSystem : IFileSystem
     /// <inheritdoc />
     public IEnumerable<string> EnumerateFiles(string path, bool recursive = false)
         => Directory.EnumerateFiles(path, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+
+    /// <inheritdoc />
+    public IEnumerable<string> EnumerateDirectories(string path, bool recursive = false)
+        => Directory.EnumerateDirectories(path, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
 }

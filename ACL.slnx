@@ -22,6 +22,7 @@
     <Project Path="tests/ACL.Core.Auth.Tests/ACL.Core.Auth.Tests.csproj" />
     <Project Path="tests/ACL.Core.Domain.Tests/ACL.Core.Domain.Tests.csproj" />
     <Project Path="tests/ACL.Core.Download.Tests/ACL.Core.Download.Tests.csproj" />
+    <Project Path="tests/ACL.Core.Java.Tests/ACL.Core.Java.Tests.csproj" />
     <Project Path="tests/ACL.Core.Launch.Tests/ACL.Core.Launch.Tests.csproj" />
     <Project Path="tests/ACL.Core.Tasks.Tests/ACL.Core.Tasks.Tests.csproj" />
     <Project Path="tests/ACL.Core.Version.Tests/ACL.Core.Version.Tests.csproj" />

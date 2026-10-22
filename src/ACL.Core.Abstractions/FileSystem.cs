@@ -35,4 +35,7 @@ public interface IFileSystem
 
     /// <summary>枚举文件。</summary>
     IEnumerable<string> EnumerateFiles(string path, bool recursive = false);
+
+    /// <summary>枚举子目录。</summary>
+    IEnumerable<string> EnumerateDirectories(string path, bool recursive = false);
 }
