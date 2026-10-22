@@ -1,24 +1,41 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using ACL.App.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace ACL.App.ViewModels;
 
-/// <summary>主窗口视图模型：导航与当前页面。</summary>
+/// <summary>主窗口视图模型：导航、全屏仪表盘与当前页面。</summary>
 public partial class MainWindowViewModel : ObservableObject
 {
-    /// <summary>构造视图模型。</summary>
+    private readonly AppServices _services;
+
+    /// <summary>构造视图模型（自建服务）。</summary>
     public MainWindowViewModel()
+        : this(AppServices.Create())
     {
+    }
+
+    /// <summary>构造视图模型（注入服务，便于测试）。</summary>
+    public MainWindowViewModel(AppServices services)
+    {
+        _services = services;
+        State = new AppState();
         SelectPageCommand = new RelayCommand<NavItem>(SelectPage);
+        ToggleFullscreenCommand = new RelayCommand(() => IsFullscreen = !IsFullscreen);
+        ShowPageCommand = new RelayCommand<NavItem>(item =>
+        {
+            SelectPage(item);
+            IsFullscreen = false;
+        });
 
         Pages =
         [
-            new NavItem("launch", "启动", "选择版本与账号，一键开始游戏。", "内核：Version / Java / Auth / Launch"),
-            new NavItem("download", "下载", "安装原版、加载器与整合包。", "内核：VersionCatalog / DownloadService / Modpack"),
-            new NavItem("settings", "设置", "内存、镜像源、Java 路径与账号。", "内核：ConfigurationStore（M9）"),
-            new NavItem("more", "更多", "日志、诊断与关于。", "内核：Diagnostics（M9）"),
+            new NavItem("launch", new LaunchPageViewModel(services, State)),
+            new NavItem("download", new DownloadPageViewModel(services, State)),
+            new NavItem("settings", new SettingsPageViewModel(services, State)),
+            new NavItem("more", new MorePageViewModel(services)),
         ];
 
         foreach (NavItem page in Pages)
@@ -26,9 +43,12 @@ public partial class MainWindowViewModel : ObservableObject
             page.Select = SelectPageCommand;
         }
 
-        _currentPage = ToPage(Pages[0]);
+        _currentPage = Pages[0].Page;
         Pages[0].IsSelected = true;
     }
+
+    /// <summary>共享设置。</summary>
+    public AppState State { get; }
 
     /// <summary>导航项。</summary>
     public ObservableCollection<NavItem> Pages { get; }
@@ -36,15 +56,25 @@ public partial class MainWindowViewModel : ObservableObject
     /// <summary>选择页面的命令。</summary>
     public ICommand SelectPageCommand { get; }
 
+    /// <summary>切换全屏仪表盘。</summary>
+    public ICommand ToggleFullscreenCommand { get; }
+
+    /// <summary>从全屏仪表盘进入页面。</summary>
+    public ICommand ShowPageCommand { get; }
+
     /// <summary>当前页面。</summary>
     [ObservableProperty]
-    private PageViewModel _currentPage;
+    private PageViewModelBase _currentPage;
+
+    /// <summary>是否处于全屏仪表盘。</summary>
+    [ObservableProperty]
+    private bool _isFullscreen;
 
     /// <summary>窗口标题。</summary>
     public string Title => "ACL";
 
-    /// <summary>副标题。</summary>
-    public string Subtitle => "Minecraft 启动器";
+    /// <summary>数据目录（关于信息）。</summary>
+    public string DataDirectory => _services.DataDirectory;
 
     private void SelectPage(NavItem? item)
     {
@@ -58,8 +88,6 @@ public partial class MainWindowViewModel : ObservableObject
             page.IsSelected = ReferenceEquals(page, item);
         }
 
-        CurrentPage = ToPage(item);
+        CurrentPage = item.Page;
     }
-
-    private static PageViewModel ToPage(NavItem item) => new(item.Label, item.Description, item.Hint);
 }

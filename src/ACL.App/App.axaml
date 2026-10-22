@@ -5,25 +5,136 @@
              RequestedThemeVariant="Dark">
 
   <Application.DataTemplates>
-    <DataTemplate DataType="vm:PageViewModel">
-      <Border Classes="AclCard" Padding="28" VerticalAlignment="Top">
-        <StackPanel Spacing="10">
-          <TextBlock Text="{Binding Title}"
-                     FontSize="22"
-                     FontWeight="SemiBold"
-                     Foreground="{StaticResource AclTextBrush}" />
-          <TextBlock Text="{Binding Description}"
-                     FontSize="14"
-                     TextWrapping="Wrap"
-                     Foreground="{StaticResource AclMutedTextBrush}" />
-          <TextBlock Text="{Binding Hint}"
-                     FontSize="12"
-                     Margin="0,6,0,0"
-                     TextWrapping="Wrap"
-                     Foreground="{StaticResource AclAccentBrush}" />
+
+    <!-- 启动页 -->
+    <DataTemplate DataType="vm:LaunchPageViewModel">
+      <ScrollViewer>
+        <StackPanel Spacing="14">
+          <Border Classes="AclCard" Padding="26">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
+              <TextBlock Text="{Binding Description}" FontSize="13" TextWrapping="Wrap" Foreground="{StaticResource AclMutedTextBrush}" />
+              <TextBlock Text="{Binding PlanSummary}" FontSize="13" Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{StaticResource AclAccentBrush}" />
+              <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                <Button Classes="AclPrimary" Content="生成启动计划" Command="{Binding PlanCommand}" />
+                <Button Classes="AclPrimary" Content="安装并启动" Command="{Binding InstallAndLaunchCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="20">
+            <StackPanel Spacing="8">
+              <TextBlock Text="进度" Classes="AclCaption" />
+              <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="8" Foreground="{StaticResource AclAccentBrush}" />
+              <TextBlock Text="{Binding Status}" Classes="AclCaption" />
+              <TextBlock Text="日志" Classes="AclCaption" Margin="0,8,0,0" />
+              <ItemsControl ItemsSource="{Binding Log}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding}" FontSize="12" FontFamily="Consolas,Menlo,monospace" Foreground="{StaticResource AclMutedTextBrush}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
         </StackPanel>
-      </Border>
+      </ScrollViewer>
     </DataTemplate>
+
+    <!-- 下载页 -->
+    <DataTemplate DataType="vm:DownloadPageViewModel">
+      <StackPanel Spacing="14">
+        <Border Classes="AclCard" Padding="24">
+          <StackPanel Spacing="10">
+            <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
+            <TextBlock Text="{Binding Description}" FontSize="13" TextWrapping="Wrap" Foreground="{StaticResource AclMutedTextBrush}" />
+            <TextBlock Text="{Binding GameDirectory}" FontSize="12" FontFamily="Consolas,Menlo,monospace" Foreground="{StaticResource AclAccentBrush}" />
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Button Classes="AclPrimary" Content="刷新版本清单" Command="{Binding RefreshCommand}" />
+            </StackPanel>
+            <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="6" Foreground="{StaticResource AclAccentBrush}" />
+            <TextBlock Text="{Binding Status}" Classes="AclCaption" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="AclCard" Padding="14">
+          <ListBox ItemsSource="{Binding Versions}" Background="Transparent" MaxHeight="320">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:VersionRowViewModel">
+                <Grid ColumnDefinitions="*,90,120,Auto" Margin="4,2">
+                  <TextBlock Text="{Binding Id}" Foreground="{StaticResource AclTextBrush}" FontSize="13" />
+                  <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" Classes="AclCaption" />
+                  <TextBlock Grid.Column="2" Text="{Binding Released}" Classes="AclCaption" />
+                  <Button Grid.Column="3" Classes="AclNav" Content="安装" Command="{Binding Install}" CommandParameter="{Binding}" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Border>
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- 设置页 -->
+    <DataTemplate DataType="vm:SettingsPageViewModel">
+      <ScrollViewer>
+        <StackPanel Spacing="14">
+          <Border Classes="AclCard" Padding="24">
+            <StackPanel Spacing="12">
+              <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
+              <TextBlock Text="{Binding Description}" FontSize="13" TextWrapping="Wrap" Foreground="{StaticResource AclMutedTextBrush}" />
+
+              <TextBlock Text="最大内存（MB）" Classes="AclCaption" Margin="0,6,0,0" />
+              <Slider Minimum="512" Maximum="32768" TickFrequency="512" Value="{Binding State.MaxMemoryMb}" />
+              <TextBlock Text="{Binding State.MaxMemoryMb, StringFormat='{}{0:F0} MB'}" Classes="AclCaption" />
+
+              <TextBlock Text="最小内存（MB）" Classes="AclCaption" Margin="0,6,0,0" />
+              <Slider Minimum="256" Maximum="8192" TickFrequency="256" Value="{Binding State.MinMemoryMb}" />
+              <TextBlock Text="{Binding State.MinMemoryMb, StringFormat='{}{0:F0} MB'}" Classes="AclCaption" />
+
+              <CheckBox Content="优先使用官方源（关闭则镜像优先）" IsChecked="{Binding State.PreferOfficial}" Foreground="{StaticResource AclTextBrush}" />
+
+              <TextBlock Text="玩家名（离线登录）" Classes="AclCaption" Margin="0,6,0,0" />
+              <TextBox Text="{Binding State.PlayerName}" />
+
+              <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,6,0,0">
+                <Button Classes="AclPrimary" Content="探测 Java" Command="{Binding DetectJavaCommand}" />
+              </StackPanel>
+              <TextBlock Text="{Binding Status}" Classes="AclCaption" />
+              <ItemsControl ItemsSource="{Binding JavaRuntimes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding}" FontSize="12" FontFamily="Consolas,Menlo,monospace" Foreground="{StaticResource AclMutedTextBrush}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="AclCard" Padding="20">
+            <StackPanel Spacing="6">
+              <TextBlock Text="数据目录" Classes="AclCaption" />
+              <TextBlock Text="{Binding DataDirectory}" FontSize="12" FontFamily="Consolas,Menlo,monospace" Foreground="{StaticResource AclAccentBrush}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </DataTemplate>
+
+    <!-- 更多页 -->
+    <DataTemplate DataType="vm:MorePageViewModel">
+      <StackPanel Spacing="14">
+        <Border Classes="AclCard" Padding="26">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{Binding ProductName}" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
+            <TextBlock Text="{Binding AppVersion}" Classes="AclCaption" />
+            <TextBlock Text="{Binding KernelNote}" FontSize="13" TextWrapping="Wrap" Foreground="{StaticResource AclMutedTextBrush}" Margin="0,6,0,0" />
+            <TextBlock Text="{Binding Notice}" FontSize="12" TextWrapping="Wrap" Foreground="{StaticResource AclAccentBrush}" />
+            <Button Classes="AclPrimary" Content="打开数据目录" Command="{Binding OpenDataDirectoryCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </DataTemplate>
+
   </Application.DataTemplates>
 
   <Application.Styles>

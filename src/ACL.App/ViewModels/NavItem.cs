@@ -7,25 +7,20 @@ namespace ACL.App.ViewModels;
 public partial class NavItem : ObservableObject
 {
     /// <summary>构造导航项。</summary>
-    public NavItem(string key, string label, string description, string hint)
+    public NavItem(string key, PageViewModelBase page)
     {
         Key = key;
-        Label = label;
-        Description = description;
-        Hint = hint;
+        Page = page;
     }
 
     /// <summary>标识。</summary>
     public string Key { get; }
 
-    /// <summary>显示名。</summary>
-    public string Label { get; }
+    /// <summary>关联页面。</summary>
+    public PageViewModelBase Page { get; }
 
-    /// <summary>页面描述。</summary>
-    public string Description { get; }
-
-    /// <summary>页面提示。</summary>
-    public string Hint { get; }
+    /// <summary>显示名（取页面标题）。</summary>
+    public string Label => Page.Title;
 
     /// <summary>是否选中。</summary>
     [ObservableProperty]
