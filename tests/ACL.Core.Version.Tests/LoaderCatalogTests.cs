@@ -102,6 +102,45 @@ public class LoaderCatalogTests
         Assert.Empty(result.Value!);
     }
 
+    [Fact]
+    public async Task GetNeoForgeVersions_ReadsMirrorDirectoryListing()
+    {
+        const string mirror = "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/forge";
+        const string json = """
+        { "name": "forge", "files": [
+            { "name": "1.20.1-47.1.9", "type": "DIRECTORY" },
+            { "name": "1.20.1-47.1.11", "type": "DIRECTORY" },
+            { "name": "1.19.4-45.1.0", "type": "DIRECTORY" }
+        ] }
+        """;
+        StubHttpTransport http = new StubHttpTransport()
+            .OnFail("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge")
+            .OnText(mirror, json);
+        LoaderCatalog catalog = new(http);
+
+        Result<IReadOnlyList<LoaderOffer>> result = await catalog.GetVersionsAsync(ModLoaderKind.NeoForge, "1.20.1");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(["47.1.11", "47.1.9"], result.Value!.Select(o => o.Version));
+    }
+
+    [Fact]
+    public async Task GetForgeVersions_SkipsUnparsableSourceAndKeepsOfficial()
+    {
+        const string mirror = "https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/maven-metadata.xml";
+        const string xml = "<metadata><versioning><versions><version>1.20.1-47.2.0</version></versions></versioning></metadata>";
+        StubHttpTransport http = new StubHttpTransport()
+            .OnText(ForgeMeta, "<html>mirror error</html>")   // 官方源返回错误页
+            .OnText(mirror, xml);                              // 镜像才是真的
+        LoaderCatalog catalog = new(http);
+
+        Result<IReadOnlyList<LoaderOffer>> result = await catalog.GetVersionsAsync(ModLoaderKind.Forge, "1.20.1");
+
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal("47.2.0", result.Value![0].Version);
+    }
+
     [Theory]
     [InlineData("1.21.1", "21.1.")]
     [InlineData("1.21", "21.")]

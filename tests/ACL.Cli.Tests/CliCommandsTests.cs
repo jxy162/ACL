@@ -113,6 +113,8 @@ public class CliCommandsTests
             new AuthService(http),
             new ModrinthClient(http),
             new CurseForgeClient(http, new StubSecretProvider(null)),
+            new ACL.Core.Version.Loaders.LoaderCatalog(http),
+            new ACL.Core.Version.Loaders.LoaderInstaller(new VersionCatalog(http), http, fs, new DownloadService(http, fs), new StubProcessLauncher(), new ACL.Core.Version.Loaders.LoaderCatalog(http)),
             "D:/mc");
 
         return (new CliCommands(services, output), output);

@@ -59,7 +59,7 @@ public sealed class LoaderCatalog : ILoaderCatalog
     private async Task<Result<IReadOnlyList<LoaderOffer>>> GetForgeAsync(string gameVersion, CancellationToken cancellationToken)
     {
         Uri origin = new("https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml");
-        Result<string> body = await FetchAsync(MirrorKind.ForgeMeta, origin, cancellationToken).ConfigureAwait(false);
+        Result<string> body = await FetchValidatedAsync(MirrorKind.ForgeMeta, origin, LooksLikeXmlVersions, cancellationToken).ConfigureAwait(false);
         if (!body.IsSuccess)
         {
             return Result<IReadOnlyList<LoaderOffer>>.Failure(body.Code, body.Detail);
@@ -85,13 +85,13 @@ public sealed class LoaderCatalog : ILoaderCatalog
             ? new Uri("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge")
             : new Uri("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge");
 
-        Result<string> body = await FetchAsync(MirrorKind.NeoForgeMeta, origin, cancellationToken).ConfigureAwait(false);
+        Result<string> body = await FetchValidatedAsync(MirrorKind.NeoForgeMeta, origin, LooksLikeJsonObject, cancellationToken).ConfigureAwait(false);
         if (!body.IsSuccess)
         {
             return Result<IReadOnlyList<LoaderOffer>>.Failure(body.Code, body.Detail);
         }
 
-        List<string> versions = ParseJsonStringArray(body.Value!, "versions");
+        List<string> versions = ParseJsonVersionList(body.Value!);
         List<LoaderOffer> offers = [];
         if (legacy)
         {
@@ -131,7 +131,7 @@ public sealed class LoaderCatalog : ILoaderCatalog
         string gameVersion,
         CancellationToken cancellationToken)
     {
-        Result<string> body = await FetchAsync(kind, origin, cancellationToken).ConfigureAwait(false);
+        Result<string> body = await FetchValidatedAsync(kind, origin, LooksLikeJsonArray, cancellationToken).ConfigureAwait(false);
         if (!body.IsSuccess)
         {
             return Result<IReadOnlyList<LoaderOffer>>.Failure(body.Code, body.Detail);
@@ -210,11 +210,36 @@ public sealed class LoaderCatalog : ILoaderCatalog
         return Result<IReadOnlyList<LoaderOffer>>.Success(offers);
     }
 
-    private async Task<Result<string>> FetchAsync(MirrorKind kind, Uri origin, CancellationToken cancellationToken)
+    /// <summary>
+    /// 抓取**结构化**元数据：元数据并发取先只适合"取到即用"，这里必须按候选顺序
+    /// 逐个校验（镜像可能返回压缩流或错误页），以第一个能解析出条目的源为准。
+    /// </summary>
+    private async Task<Result<string>> FetchValidatedAsync(
+        MirrorKind kind,
+        Uri origin,
+        Func<string, bool> isValid,
+        CancellationToken cancellationToken)
     {
-        IReadOnlyList<Uri> candidates = _policy.Resolve(kind, origin);
-        return await _fetcher.FetchStringAsync(candidates, cancellationToken).ConfigureAwait(false);
+        Result<string> last = Result<string>.Failure(ErrorCode.NotFound, origin.ToString());
+        foreach (Uri candidate in _policy.Resolve(kind, origin))
+        {
+            Result<string> body = await _fetcher.FetchStringAsync([candidate], cancellationToken).ConfigureAwait(false);
+            if (body.IsSuccess && isValid(body.Value!))
+            {
+                return body;
+            }
+
+            last = body;
+        }
+
+        return last;
     }
+
+    private static bool LooksLikeXmlVersions(string body) => body.Contains("<version>", StringComparison.Ordinal);
+
+    private static bool LooksLikeJsonArray(string body) => body.TrimStart().StartsWith('[');
+
+    private static bool LooksLikeJsonObject(string body) => body.TrimStart().StartsWith('{');
 
     private static IEnumerable<string> ParseXmlVersions(string xml)
     {
@@ -240,19 +265,39 @@ public sealed class LoaderCatalog : ILoaderCatalog
         }
     }
 
-    private static List<string> ParseJsonStringArray(string json, string property)
+    /// <summary>
+    /// 解析 Maven 版本列表：兼容官方 API 的 <c>{ "versions": [...] }</c>
+    /// 与镜像的目录列表 <c>{ "files": [ { "name": ... } ] }</c> 两种结构。
+    /// </summary>
+    private static List<string> ParseJsonVersionList(string json)
     {
         List<string> result = [];
         try
         {
             using JsonDocument document = JsonDocument.Parse(json);
-            if (document.RootElement.TryGetProperty(property, out JsonElement array) && array.ValueKind == JsonValueKind.Array)
+            JsonElement root = document.RootElement;
+            if (root.TryGetProperty("versions", out JsonElement versions) && versions.ValueKind == JsonValueKind.Array)
             {
-                foreach (JsonElement item in array.EnumerateArray())
+                foreach (JsonElement item in versions.EnumerateArray())
                 {
                     if (item.ValueKind == JsonValueKind.String)
                     {
                         result.Add(item.GetString()!);
+                    }
+                }
+
+                return result;
+            }
+
+            if (root.TryGetProperty("files", out JsonElement files) && files.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement item in files.EnumerateArray())
+                {
+                    string? name = GetString(item, "name");
+                    string? type = GetString(item, "type");
+                    if (name is { Length: > 0 } && (type is null || type == "DIRECTORY"))
+                    {
+                        result.Add(name);
                     }
                 }
             }

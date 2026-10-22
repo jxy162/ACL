@@ -7,6 +7,7 @@ using ACL.Core.Launch;
 using ACL.Core.Modpack;
 using ACL.Core.Resources;
 using ACL.Core.Version;
+using ACL.Core.Version.Loaders;
 using ACL.Infrastructure;
 
 // ACL 组合根：在此装配实现（内核不解析容器，见 ADR-0004）。
@@ -42,6 +43,9 @@ ModpackInstaller modpackInstaller = new(fileSystem, downloadService);
 ModrinthClient modrinth = new(http);
 CurseForgeClient curseForge = new(http, secrets);
 
+LoaderCatalog loaderCatalog = new(http, mirrorPolicy);
+LoaderInstaller loaderInstaller = new(versionCatalog, http, fileSystem, downloadService, processLauncher, loaderCatalog);
+
 CliServices services = new(
     versionCatalog,
     javaLocator,
@@ -54,6 +58,8 @@ CliServices services = new(
     authService,
     modrinth,
     curseForge,
+    loaderCatalog,
+    loaderInstaller,
     gameDirectory);
 
 CliCommands commands = new(services, Console.Out);

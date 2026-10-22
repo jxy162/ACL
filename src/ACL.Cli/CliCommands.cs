@@ -5,6 +5,7 @@ using ACL.Core.Java;
 using ACL.Core.Launch;
 using ACL.Core.Resources;
 using ACL.Core.Version;
+using ACL.Core.Version.Loaders;
 
 namespace ACL.Cli;
 
@@ -39,6 +40,10 @@ public sealed class CliCommands
                 return await SearchAsync(line, cancellationToken).ConfigureAwait(false);
             case "modpack":
                 return Modpack(line);
+            case "loaders":
+                return await LoadersAsync(line, cancellationToken).ConfigureAwait(false);
+            case "install":
+                return await InstallAsync(line, cancellationToken).ConfigureAwait(false);
             default:
                 Help();
                 return line.Command is null ? 0 : 1;
@@ -54,6 +59,87 @@ public sealed class CliCommands
         _output.WriteLine("  login-offline <用户名>         生成离线会话");
         _output.WriteLine("  search <关键字> [--source modrinth|curseforge] [--version V] [--loader fabric]");
         _output.WriteLine("  modpack <整合包路径>           解析整合包");
+        _output.WriteLine("  loaders <版本> [--kind fabric]  列出可用的加载器版本");
+        _output.WriteLine("  install <版本> [--kind fabric] [--loader-version V] [--name N]");
+    }
+
+    private static ModLoaderKind ParseKind(string? value) => value?.ToLowerInvariant() switch
+    {
+        "forge" => ModLoaderKind.Forge,
+        "neoforge" => ModLoaderKind.NeoForge,
+        "fabric" => ModLoaderKind.Fabric,
+        "quilt" => ModLoaderKind.Quilt,
+        "optifine" => ModLoaderKind.OptiFine,
+        _ => ModLoaderKind.None,
+    };
+
+    /// <summary>列出某 Minecraft 版本下可用的加载器版本。</summary>
+    private async Task<int> LoadersAsync(CommandLine line, CancellationToken cancellationToken)
+    {
+        string? game = line.Arg(0);
+        if (string.IsNullOrWhiteSpace(game))
+        {
+            _output.WriteLine("用法：loaders <版本> [--kind forge|neoforge|fabric|quilt|optifine]");
+            return 1;
+        }
+
+        ModLoaderKind kind = ParseKind(line.Option("kind") ?? "fabric");
+        if (kind == ModLoaderKind.None)
+        {
+            _output.WriteLine("未知加载器（支持 forge / neoforge / fabric / quilt / optifine）。");
+            return 1;
+        }
+
+        Result<IReadOnlyList<LoaderOffer>> result = await _services.LoaderCatalog
+            .GetVersionsAsync(kind, game, cancellationToken).ConfigureAwait(false);
+        if (!result.IsSuccess)
+        {
+            _output.WriteLine($"获取加载器版本失败：{result.Code} {result.Detail}");
+            return 2;
+        }
+
+        _output.WriteLine($"{game} 的 {kind} 版本（共 {result.Value!.Count} 个）：");
+        foreach (LoaderOffer offer in result.Value!.Take(line.OptionInt("limit", 10)))
+        {
+            _output.WriteLine($"  {offer.Version,-18} {offer.GameVersion}{(offer.IsRecommended ? "  推荐" : string.Empty)}");
+        }
+
+        return 0;
+    }
+
+    /// <summary>安装（或补齐）一个版本 / 加载器实例。</summary>
+    private async Task<int> InstallAsync(CommandLine line, CancellationToken cancellationToken)
+    {
+        string? game = line.Arg(0);
+        if (string.IsNullOrWhiteSpace(game))
+        {
+            _output.WriteLine("用法：install <版本> [--kind fabric] [--loader-version V] [--name N] [--java path]");
+            return 1;
+        }
+
+        ModLoaderKind kind = ParseKind(line.Option("kind") ?? "vanilla");
+        string? loaderVersion = line.Option("loader-version");
+        string name = line.Option("name") ?? (kind == ModLoaderKind.None ? game : $"{game}-{kind.ToString().ToLowerInvariant()}");
+
+        LoaderInstallRequest request = new(kind, game, loaderVersion, name, _services.GameDirectory, line.Option("java"));
+        Result<LoaderInstallResult> result = await _services.LoaderInstaller
+            .InstallAsync(request, null, cancellationToken).ConfigureAwait(false);
+        if (!result.IsSuccess)
+        {
+            _output.WriteLine($"安装失败：{result.Code} {result.Detail}");
+            return 2;
+        }
+
+        LoaderInstallResult value = result.Value!;
+        _output.WriteLine($"已安装实例：{value.InstanceId}");
+        _output.WriteLine($"版本 JSON：{value.VersionJsonPath}");
+        _output.WriteLine($"下载 / 校验：{value.Downloads.Count} 项");
+        foreach (string note in value.Notes)
+        {
+            _output.WriteLine($"  · {note}");
+        }
+
+        return 0;
     }
 
     private async Task<int> VersionsAsync(CommandLine line, CancellationToken cancellationToken)

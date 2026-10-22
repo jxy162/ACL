@@ -6,6 +6,7 @@ using ACL.Core.Launch;
 using ACL.Core.Modpack;
 using ACL.Core.Resources;
 using ACL.Core.Version;
+using ACL.Core.Version.Loaders;
 
 namespace ACL.Cli;
 
@@ -22,4 +23,6 @@ public sealed record CliServices(
     IAuthService Auth,
     IResourceIndex Modrinth,
     IResourceIndex CurseForge,
+    ILoaderCatalog LoaderCatalog,
+    ILoaderInstaller LoaderInstaller,
     string GameDirectory);
