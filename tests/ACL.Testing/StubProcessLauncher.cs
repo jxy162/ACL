@@ -21,7 +21,7 @@ public sealed class StubProcessLauncher : IProcessLauncher
 
     public StubProcessLauncher On(string fileName, Func<ProcessSpec, Result<ProcessResult>> handler)
     {
-        _handlers[fileName] = handler;
+        _handlers[Normalize(fileName)] = handler;
         return this;
     }
 
@@ -32,6 +32,8 @@ public sealed class StubProcessLauncher : IProcessLauncher
     public StubProcessLauncher OnMissing(string fileName)
         => On(fileName, _ => Result<ProcessResult>.Failure(ErrorCode.ProcessStartFailed, "not found"));
 
+    private static string Normalize(string path) => path.Replace('\\', '/');
+
     public Task<Result<ProcessResult>> RunAsync(ProcessSpec spec, CancellationToken cancellationToken = default)
     {
         lock (_specs)
@@ -39,7 +41,7 @@ public sealed class StubProcessLauncher : IProcessLauncher
             _specs.Add(spec);
         }
 
-        return Task.FromResult(_handlers.TryGetValue(spec.FileName, out Func<ProcessSpec, Result<ProcessResult>>? handler)
+        return Task.FromResult(_handlers.TryGetValue(Normalize(spec.FileName), out Func<ProcessSpec, Result<ProcessResult>>? handler)
             ? handler(spec)
             : Result<ProcessResult>.Failure(ErrorCode.ProcessStartFailed, "无处理器"));
     }

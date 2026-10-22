@@ -8,7 +8,11 @@ public sealed class InMemoryFileSystem : IFileSystem
     private readonly Dictionary<string, byte[]> _files = new(StringComparer.Ordinal);
     private readonly HashSet<string> _directories = new(StringComparer.Ordinal);
 
-    public void WriteFile(string path, byte[] content) => _files[Key(path)] = content;
+    public void WriteFile(string path, byte[] content)
+    {
+        _files[Key(path)] = content;
+        RegisterParents(path);
+    }
 
     public void WriteFile(string path, string content) => WriteFile(path, System.Text.Encoding.UTF8.GetBytes(content));
 
@@ -29,6 +33,7 @@ public sealed class InMemoryFileSystem : IFileSystem
     public Stream OpenWrite(string path, bool append = false)
     {
         string key = Key(path);
+        RegisterParents(path);
         byte[]? initial = append && _files.TryGetValue(key, out byte[]? existing) ? existing : null;
         return new CommittingStream(initial, bytes => _files[key] = bytes);
     }
@@ -43,11 +48,15 @@ public sealed class InMemoryFileSystem : IFileSystem
         {
             _files[to] = value;
             _files.Remove(from);
+            RegisterParents(destinationPath);
         }
     }
 
     public void Copy(string sourcePath, string destinationPath, bool overwrite = true)
-        => _files[Key(destinationPath)] = _files[Key(sourcePath)];
+    {
+        _files[Key(destinationPath)] = _files[Key(sourcePath)];
+        RegisterParents(destinationPath);
+    }
 
     public IEnumerable<string> EnumerateFiles(string path, bool recursive = false) => _files.Keys;
 
@@ -58,6 +67,22 @@ public sealed class InMemoryFileSystem : IFileSystem
     }
 
     private static string Key(string path) => path.Replace('\\', '/').TrimEnd('/');
+
+    private void RegisterParents(string path)
+    {
+        string? directory = Path.GetDirectoryName(path);
+        while (!string.IsNullOrEmpty(directory))
+        {
+            _directories.Add(Key(directory));
+            string? parent = Path.GetDirectoryName(directory);
+            if (parent == directory)
+            {
+                break;
+            }
+
+            directory = parent;
+        }
+    }
 
     private sealed class CommittingStream : MemoryStream
     {
