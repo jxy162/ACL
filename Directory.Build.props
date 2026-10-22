@@ -1,0 +1,23 @@
+<Project>
+
+  <!-- 全局通用构建属性（所有工程继承）。内核严格性见 src/Directory.Build.props。 -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <!-- 中央包版本管理（CPM）：版本集中在 Directory.Packages.props -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
+    <Company>ACL</Company>
+    <Product>ACL</Product>
+    <Authors>ACL</Authors>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <NeutralLanguage>zh-Hans</NeutralLanguage>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+</Project>

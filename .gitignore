@@ -1,0 +1,24 @@
+# 构建产物
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+publish/
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+
+# 本地工具链 / 临时
+.dotnet/
+.tmp/
+temp/
+*.log
+
+# 敏感文件
+secrets/
+*.secrets.json
+.env

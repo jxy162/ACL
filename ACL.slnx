@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ACL.Core.Abstractions/ACL.Core.Abstractions.csproj" />
+    <Project Path="src/ACL.Core.Domain/ACL.Core.Domain.csproj" />
+    <Project Path="src/ACL.Core.Tasks/ACL.Core.Tasks.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ACL.Core.Domain.Tests/ACL.Core.Domain.Tests.csproj" />
+    <Project Path="tests/ACL.Core.Tasks.Tests/ACL.Core.Tasks.Tests.csproj" />
+  </Folder>
+</Solution>
