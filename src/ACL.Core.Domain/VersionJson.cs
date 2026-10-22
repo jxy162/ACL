@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace ACL.Core.Domain;
 
 /// <summary>单个可下载产物（客户端 / 服务端 / 库文件）。</summary>
@@ -22,6 +24,7 @@ public sealed record LibraryDownloads(
 public sealed record RuleEntry(string Action, string? OsName = null, string? OsVersion = null, string? OsArch = null)
 {
     /// <summary>是否允许。</summary>
+    [JsonIgnore]
     public bool IsAllow => Action.Equals("allow", StringComparison.OrdinalIgnoreCase);
 }
 

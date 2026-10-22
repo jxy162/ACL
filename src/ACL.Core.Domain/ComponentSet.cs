@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace ACL.Core.Domain;
 
 /// <summary>OptiFine 引用：版本名与是否以 Mod 形式安装。</summary>
@@ -46,9 +48,11 @@ public sealed class ComponentSet : IEquatable<ComponentSet>
     public string? QuiltVersion { get; }
 
     /// <summary>是否原版（无任何加载器与 OptiFine）。</summary>
+    [JsonIgnore]
     public bool IsVanilla => Loaders.Count == 0 && OptiFine is null;
 
     /// <summary>按稳定序数排序的加载器种类。</summary>
+    [JsonIgnore]
     public IEnumerable<ModLoaderKind> OrderedLoaderKinds
         => Loaders.Keys.OrderBy(ModLoaderKinds.SortKey);
 

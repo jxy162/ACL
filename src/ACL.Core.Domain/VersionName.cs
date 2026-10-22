@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace ACL.Core.Domain;
@@ -33,6 +34,7 @@ public sealed record VersionName
     public string Raw { get; }
 
     /// <summary>是否为占位 / 未知版本名。</summary>
+    [JsonIgnore]
     public bool IsUnknown => string.IsNullOrWhiteSpace(Raw) || IsUnknownToken(Raw);
 
     /// <inheritdoc />
