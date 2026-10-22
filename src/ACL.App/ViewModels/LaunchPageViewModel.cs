@@ -37,6 +37,14 @@ public partial class LaunchPageViewModel : PageViewModelBase
     [ObservableProperty]
     private string _planSummary = "尚未生成计划。";
 
+    /// <summary>版本摘要。</summary>
+    public string VersionSummary => string.IsNullOrEmpty(_state.SelectedVersionId)
+        ? "版本：未选择"
+        : $"版本：{_state.SelectedVersionId}";
+
+    /// <summary>账号摘要。</summary>
+    public string AccountSummary => $"账号：{_state.PlayerName}（离线）";
+
     /// <summary>日志。</summary>
     public ObservableCollection<string> Log { get; } = [];
 

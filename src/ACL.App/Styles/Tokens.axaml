@@ -1,25 +1,37 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- ACL 自有设计令牌（见 docs/12）。 -->
+  <!-- ACL 自有设计令牌（见 docs/12）：常规窗口用浅色内容面，全屏仪表盘用深色底。 -->
   <Styles.Resources>
+
+    <!-- 主色（ACL 自有取值） -->
     <LinearGradientBrush x:Key="AclPrimaryBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-      <GradientStop Color="#5B5BF0" Offset="0" />
-      <GradientStop Color="#17C3D9" Offset="1" />
+      <GradientStop Color="#4F5BF2" Offset="0" />
+      <GradientStop Color="#1CB8D8" Offset="1" />
     </LinearGradientBrush>
 
-    <LinearGradientBrush x:Key="AclBackgroundBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-      <GradientStop Color="#0A1120" Offset="0" />
-      <GradientStop Color="#14263D" Offset="1" />
-    </LinearGradientBrush>
+    <!-- 浅色内容面 -->
+    <SolidColorBrush x:Key="AclSurfaceBrush" Color="#F2F4F9" />
+    <SolidColorBrush x:Key="AclCardBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AclStrokeBrush" Color="#E3E8F3" />
+    <SolidColorBrush x:Key="AclStrokeStrongBrush" Color="#D3DAEA" />
+    <SolidColorBrush x:Key="AclTextBrush" Color="#1A1D26" />
+    <SolidColorBrush x:Key="AclMutedTextBrush" Color="#6E7789" />
+    <SolidColorBrush x:Key="AclAccentBrush" Color="#1CB8D8" />
+    <SolidColorBrush x:Key="AclSecondaryTextBrush" Color="#4F5BF2" />
+    <SolidColorBrush x:Key="AclSelectionBrush" Color="#E9EDFE" />
+    <SolidColorBrush x:Key="AclBadgeBrush" Color="#EEF1F9" />
+    <SolidColorBrush x:Key="AclDangerBrush" Color="#E5484D" />
 
-    <SolidColorBrush x:Key="AclCardBrush" Color="#CC16223A" />
-    <SolidColorBrush x:Key="AclSurfaceBrush" Color="#9910192B" />
-    <SolidColorBrush x:Key="AclStrokeBrush" Color="#2AFFFFFF" />
-    <SolidColorBrush x:Key="AclTextBrush" Color="#F2F6FF" />
-    <SolidColorBrush x:Key="AclMutedTextBrush" Color="#9FB0CE" />
-    <SolidColorBrush x:Key="AclAccentBrush" Color="#1FC8C0" />
-    <SolidColorBrush x:Key="AclSelectionBrush" Color="#335B5BF0" />
+    <!-- 全屏仪表盘（深色） -->
+    <LinearGradientBrush x:Key="AclDarkBackgroundBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+      <GradientStop Color="#080E1B" Offset="0" />
+      <GradientStop Color="#132741" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="AclDarkCardBrush" Color="#D916223A" />
+    <SolidColorBrush x:Key="AclDarkStrokeBrush" Color="#2AFFFFFF" />
+    <SolidColorBrush x:Key="AclDarkTextBrush" Color="#F2F6FF" />
+    <SolidColorBrush x:Key="AclDarkMutedBrush" Color="#9FB0CE" />
 
     <StreamGeometry x:Key="AclLogoGeometry">M0,44 L13,0 L26,44 L19,44 L13,19 L7,44 Z</StreamGeometry>
   </Styles.Resources>

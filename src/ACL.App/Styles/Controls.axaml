@@ -1,27 +1,52 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- 自研控件样式（不使用任何第三方模板）。 -->
+  <!-- 自研控件样式（浅色内容面）；全屏仪表盘使用 AclDark* 变体。 -->
+
+  <Style Selector="Window">
+    <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, Inter, sans-serif" />
+  </Style>
 
   <Style Selector="Border.AclCard">
     <Setter Property="Background" Value="{StaticResource AclCardBrush}" />
     <Setter Property="BorderBrush" Value="{StaticResource AclStrokeBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="20" />
-    <Setter Property="BoxShadow" Value="0 8 24 0 #40000000" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="BoxShadow" Value="0 4 14 0 #14102040" />
+    <Setter Property="RenderTransform" Value="none" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
   </Style>
 
-  <Style Selector="Border.AclSurface">
-    <Setter Property="Background" Value="{StaticResource AclSurfaceBrush}" />
-    <Setter Property="BorderBrush" Value="{StaticResource AclStrokeBrush}" />
+  <Style Selector="Border.AclCard.hoverable:pointerover">
+    <Setter Property="RenderTransform" Value="scale(1.012)" />
+  </Style>
+
+  <Style Selector="Border.AclDarkCard">
+    <Setter Property="Background" Value="{StaticResource AclDarkCardBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AclDarkStrokeBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="26" />
+    <Setter Property="CornerRadius" Value="16" />
   </Style>
 
-  <Style Selector="TextBlock.AclTitle">
+  <Style Selector="TextBlock.AclPageTitle">
+    <Setter Property="Foreground" Value="{StaticResource AclTextBrush}" />
+    <Setter Property="FontSize" Value="24" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="TextBlock.AclSection">
     <Setter Property="Foreground" Value="{StaticResource AclTextBrush}" />
     <Setter Property="FontSize" Value="15" />
     <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="TextBlock.AclBody">
+    <Setter Property="Foreground" Value="{StaticResource AclTextBrush}" />
+    <Setter Property="FontSize" Value="13" />
   </Style>
 
   <Style Selector="TextBlock.AclCaption">
@@ -29,13 +54,28 @@
     <Setter Property="FontSize" Value="12" />
   </Style>
 
+  <Style Selector="Border.AclBadge">
+    <Setter Property="Background" Value="{StaticResource AclBadgeBrush}" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="10,3" />
+  </Style>
+
+  <!-- 底部导航 -->
   <Style Selector="Button.AclNav">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{StaticResource AclMutedTextBrush}" />
     <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="22,10" />
+    <Setter Property="Padding" Value="24,10" />
     <Setter Property="FontSize" Value="14" />
     <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="Button.AclNav /template/ ContentPresenter">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.15" />
+      </Transitions>
+    </Setter>
   </Style>
 
   <Style Selector="Button.AclNav:pointerover /template/ ContentPresenter">
@@ -43,7 +83,7 @@
   </Style>
 
   <Style Selector="Button.AclNav.selected">
-    <Setter Property="Foreground" Value="{StaticResource AclTextBrush}" />
+    <Setter Property="Foreground" Value="#FFFFFF" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
@@ -51,29 +91,81 @@
     <Setter Property="Background" Value="{StaticResource AclPrimaryBrush}" />
   </Style>
 
+  <!-- 深色变体（全屏仪表盘） -->
+  <Style Selector="Button.AclNavDark">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource AclDarkMutedBrush}" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="24,10" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="Button.AclNavDark.selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AclPrimaryBrush}" />
+  </Style>
+
+  <Style Selector="Button.AclNavDark.selected">
+    <Setter Property="Foreground" Value="#FFFFFF" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- 主按钮 / 次按钮 / 图标按钮 -->
+  <Style Selector="Button.AclPrimary">
+    <Setter Property="Background" Value="{StaticResource AclPrimaryBrush}" />
+    <Setter Property="Foreground" Value="#FFFFFF" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="26,12" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="Button.AclGhost">
+    <Setter Property="Background" Value="#FFFFFF" />
+    <Setter Property="Foreground" Value="{StaticResource AclTextBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AclStrokeStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="22,10" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+
   <Style Selector="Button.AclWindowButton">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{StaticResource AclMutedTextBrush}" />
-    <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Width" Value="34" />
-    <Setter Property="Height" Value="34" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Width" Value="40" />
+    <Setter Property="Height" Value="32" />
     <Setter Property="Padding" Value="0" />
+    <Setter Property="FontSize" Value="13" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="BorderThickness" Value="0" />
   </Style>
 
   <Style Selector="Button.AclWindowButton:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{StaticResource AclSelectionBrush}" />
+    <Setter Property="Background" Value="#E7EAF3" />
   </Style>
 
-  <Style Selector="Button.AclPrimary">
-    <Setter Property="Background" Value="{StaticResource AclPrimaryBrush}" />
-    <Setter Property="Foreground" Value="#FFFFFF" />
-    <Setter Property="CornerRadius" Value="999" />
-    <Setter Property="Padding" Value="26,12" />
-    <Setter Property="FontWeight" Value="SemiBold" />
+  <Style Selector="Button.AclWindowButton.danger:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#E5484D" />
+    <Setter Property="TextElement.Foreground" Value="#FFFFFF" />
+  </Style>
+
+  <!-- 版本列表行 -->
+  <Style Selector="ListBox.AclVersionList">
+    <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="ListBox.AclVersionList ListBoxItem">
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="10,8" />
+  </Style>
+
+  <Style Selector="ListBox.AclVersionList ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AclSelectionBrush}" />
   </Style>
 
 </Styles>

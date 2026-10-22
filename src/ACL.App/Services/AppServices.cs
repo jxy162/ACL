@@ -78,15 +78,17 @@ public sealed class AppServices
     /// <summary>启动器数据目录。</summary>
     public string DataDirectory { get; }
 
-    /// <summary>游戏根目录（默认在 ACL 数据目录下，避免影响用户既有 .minecraft）。</summary>
+    /// <summary>游戏根目录（默认与启动器同目录的 <c>.minecraft</c>，便携可拷贝）。</summary>
     public string GameDirectory { get; }
 
     /// <summary>装配默认实现。</summary>
     public static AppServices Create()
     {
-        string dataDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ACL");
-        string gameDirectory = Path.Combine(dataDirectory, ".minecraft");
+        // 便携式：数据目录与游戏目录都放在启动器所在目录，便于整体拷贝与查找。
+        string dataDirectory = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+        string gameDirectory = Environment.GetEnvironmentVariable("ACL_GAME_DIR") is { Length: > 0 } custom
+            ? custom
+            : Path.Combine(dataDirectory, ".minecraft");
 
         HttpTransport http = new();
         PhysicalFileSystem fileSystem = new();

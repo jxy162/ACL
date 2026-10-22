@@ -8,8 +8,9 @@ using ACL.Core.Version;
 using ACL.Infrastructure;
 
 // ACL 组合根：在此装配实现（内核不解析容器，见 ADR-0004）。
-string gameDirectory = Environment.GetEnvironmentVariable("ACL_GAME_DIR")
-    ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
+string gameDirectory = Environment.GetEnvironmentVariable("ACL_GAME_DIR") is { Length: > 0 } custom
+    ? custom
+    : Path.Combine(AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar), ".minecraft");
 
 using HttpTransport http = new();
 PhysicalFileSystem fileSystem = new();

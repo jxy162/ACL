@@ -17,7 +17,11 @@ public partial class App : Avalonia.Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow { DataContext = new MainWindowViewModel() };
+            MainWindowViewModel viewModel = new();
+            desktop.MainWindow = new MainWindow { DataContext = viewModel };
+
+            // 启动即拉取版本清单，避免下拉框为空。
+            viewModel.RefreshVersionsCommand.Execute(null);
         }
 
         base.OnFrameworkInitializationCompleted();

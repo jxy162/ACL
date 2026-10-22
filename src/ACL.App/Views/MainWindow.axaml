@@ -4,80 +4,130 @@
         x:Class="ACL.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="ACL"
+        Icon="/Assets/logo.ico"
         Width="1120" Height="740"
-        MinWidth="920" MinHeight="620"
+        MinWidth="960" MinHeight="640"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="None"
-        Background="Transparent">
+        Background="#F2F4F9">
 
   <Panel>
-    <!-- 背景 -->
-    <Border Background="{StaticResource AclBackgroundBrush}" />
-    <Ellipse Width="760" Height="760" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-320,-260,0">
-      <Ellipse.Fill>
-        <RadialGradientBrush>
-          <GradientStop Color="#42409BFF" Offset="0" />
-          <GradientStop Color="#00409BFF" Offset="1" />
-        </RadialGradientBrush>
-      </Ellipse.Fill>
-    </Ellipse>
-    <Ellipse Width="600" Height="600" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-220,0,0,-240">
-      <Ellipse.Fill>
-        <RadialGradientBrush>
-          <GradientStop Color="#331FC8C0" Offset="0" />
-          <GradientStop Color="#001FC8C0" Offset="1" />
-        </RadialGradientBrush>
-      </Ellipse.Fill>
-    </Ellipse>
+    <!-- ======== 常规窗口 ======== -->
+    <Grid RowDefinitions="54,*,74" IsVisible="{Binding !IsFullscreen}">
 
-    <!-- 常规界面 -->
-    <Grid RowDefinitions="60,*,76" IsVisible="{Binding !IsFullscreen}">
+      <!-- 标题栏 -->
       <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" PointerPressed="OnTitleBarPressed">
-        <StackPanel Orientation="Horizontal" Spacing="10" Margin="18,0,0,0" VerticalAlignment="Center">
-          <Path Data="{StaticResource AclLogoGeometry}" Fill="{StaticResource AclPrimaryBrush}" Width="20" Height="26" Stretch="Uniform" />
-          <TextBlock Text="ACL" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
+        <StackPanel Orientation="Horizontal" Spacing="10" Margin="16,0,0,0" VerticalAlignment="Center">
+          <Image Source="/Assets/logo-256.png" Width="26" Height="26" />
+          <TextBlock Text="ACL" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" VerticalAlignment="Center" />
           <TextBlock Text="Minecraft 启动器" Classes="AclCaption" VerticalAlignment="Center" />
         </StackPanel>
 
-        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" Margin="0,0,14,0" VerticalAlignment="Center">
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="0,0,10,0" VerticalAlignment="Center">
           <Button Classes="AclWindowButton" Content="⛶" ToolTip.Tip="全屏仪表盘（F11）" Command="{Binding ToggleFullscreenCommand}" />
           <Button Classes="AclWindowButton" Content="–" ToolTip.Tip="最小化" Click="OnMinimize" />
-          <Button Classes="AclWindowButton" Content="✕" ToolTip.Tip="关闭" Click="OnClose" />
+          <Button Classes="AclWindowButton danger" Content="✕" ToolTip.Tip="关闭" Click="OnClose" />
         </StackPanel>
       </Grid>
 
-      <Grid Grid.Row="1" ColumnDefinitions="320,*" Margin="18,0,18,0">
-        <StackPanel Spacing="12">
-          <Border Classes="AclCard" Padding="18">
-            <StackPanel Spacing="6">
-              <TextBlock Text="账号" Classes="AclCaption" />
-              <TextBlock Text="{Binding State.PlayerName}" Classes="AclTitle" />
-              <TextBlock Text="离线登录（微软 / 第三方在 M9 接入界面）" Classes="AclCaption" TextWrapping="Wrap" />
+      <!-- 主体 -->
+      <Grid Grid.Row="1" ColumnDefinitions="320,*" Margin="16,0,16,0">
+
+        <StackPanel Spacing="10">
+          <!-- 账号 -->
+          <Border Classes="AclCard hoverable" Padding="16">
+            <StackPanel Spacing="10">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <Border Width="42" Height="42" CornerRadius="999" Background="{StaticResource AclPrimaryBrush}">
+                  <TextBlock Text="{Binding State.AvatarLetter}" Foreground="#FFFFFF" FontSize="18" FontWeight="SemiBold"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                  <TextBlock Text="{Binding State.PlayerName}" Classes="AclSection" />
+                  <TextBlock Text="{Binding State.AccountStatus}" Classes="AclCaption" />
+                </StackPanel>
+              </StackPanel>
+              <TextBox Text="{Binding State.PlayerName}" Watermark="玩家名（离线）" />
+              <Button Classes="AclPrimary" Content="离线登录" HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" Command="{Binding LoginOfflineCommand}" />
             </StackPanel>
           </Border>
 
-          <Border Classes="AclCard" Padding="18">
-            <StackPanel Spacing="6">
-              <TextBlock Text="版本" Classes="AclCaption" />
-              <TextBlock Text="{Binding State.SelectedVersionId, TargetNullValue=未选择, FallbackValue=未选择}" Classes="AclTitle" />
-              <TextBlock Text="可在“下载”页刷新并安装" Classes="AclCaption" TextWrapping="Wrap" />
+          <!-- 版本 -->
+          <Border Classes="AclCard hoverable" Padding="16">
+            <StackPanel Spacing="10">
+              <TextBlock Text="游戏版本" Classes="AclSection" />
+              <ComboBox ItemsSource="{Binding State.Versions}" SelectedItem="{Binding State.SelectedVersion}"
+                        HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate DataType="vm:VersionRowViewModel">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock Text="{Binding Id}" />
+                      <TextBlock Grid.Column="1" Text="{Binding TypeLabel}" Classes="AclCaption" Margin="10,0,0,0" />
+                    </Grid>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <Button Classes="AclGhost" Content="刷新版本清单" HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" Command="{Binding RefreshVersionsCommand}" />
+              <TextBlock Text="{Binding VersionStatus}" Classes="AclCaption" TextWrapping="Wrap" />
             </StackPanel>
           </Border>
 
-          <Border Classes="AclCard" Padding="18">
+          <!-- Java -->
+          <Border Classes="AclCard hoverable" Padding="16">
             <StackPanel Spacing="6">
-              <TextBlock Text="Java" Classes="AclCaption" />
-              <TextBlock Text="{Binding State.SelectedJavaHome, TargetNullValue=未探测, FallbackValue=未探测}" Classes="AclTitle" TextWrapping="Wrap" />
-              <TextBlock Text="在“设置”页探测本机运行时" Classes="AclCaption" TextWrapping="Wrap" />
+              <TextBlock Text="Java" Classes="AclSection" />
+              <TextBlock Text="{Binding State.SelectedJavaHome, TargetNullValue=尚未探测, FallbackValue=尚未探测}"
+                         Classes="AclCaption" TextWrapping="Wrap" />
+              <TextBlock Text="在“设置”页探测本机运行时" Classes="AclCaption" />
             </StackPanel>
           </Border>
         </StackPanel>
 
-        <ContentControl Grid.Column="1" Margin="16,0,0,0" Content="{Binding CurrentPage}" />
+        <TransitioningContentControl Grid.Column="1" Margin="14,0,0,0" Content="{Binding CurrentPage}">
+          <TransitioningContentControl.PageTransition>
+            <CrossFade Duration="0:0:0.18" />
+          </TransitioningContentControl.PageTransition>
+        </TransitioningContentControl>
       </Grid>
 
-      <Border Grid.Row="2" Classes="AclSurface" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8">
+      <!-- 底部导航 -->
+      <Border Grid.Row="2" Classes="AclCard" CornerRadius="999" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="6">
         <ItemsControl ItemsSource="{Binding Pages}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="4" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:NavItem">
+              <Button Classes="AclNav" Classes.selected="{Binding IsSelected}"
+                      Command="{Binding Select}" CommandParameter="{Binding}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <TextBlock Text="{Binding Icon}" FontSize="13" />
+                  <TextBlock Text="{Binding Label}" />
+                </StackPanel>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+    </Grid>
+
+    <!-- ======== 全屏仪表盘（深色 + 壁纸） ======== -->
+    <Grid RowDefinitions="76,*,Auto" Margin="30,18,30,20" IsVisible="{Binding IsFullscreen}">
+      <Grid.Background>
+        <ImageBrush Source="avares://ACL.App/Assets/wallpaper.png" Stretch="UniformToFill" />
+      </Grid.Background>
+
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <Image Source="/Assets/logo-256.png" Width="30" Height="30" />
+          <TextBlock Text="ACL" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AclDarkTextBrush}" />
+        </StackPanel>
+
+        <ItemsControl Grid.Column="1" ItemsSource="{Binding Pages}" HorizontalAlignment="Center" VerticalAlignment="Center">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <StackPanel Orientation="Horizontal" Spacing="6" />
@@ -85,30 +135,13 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate DataType="vm:NavItem">
-              <Button Classes="AclNav" Classes.selected="{Binding IsSelected}" Content="{Binding Label}" Command="{Binding Select}" CommandParameter="{Binding}" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </Border>
-    </Grid>
-
-    <!-- 全屏仪表盘 -->
-    <Grid RowDefinitions="72,*,Auto" Margin="28,18,28,22" IsVisible="{Binding IsFullscreen}">
-      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
-        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-          <Path Data="{StaticResource AclLogoGeometry}" Fill="{StaticResource AclPrimaryBrush}" Width="22" Height="30" Stretch="Uniform" />
-          <TextBlock Text="ACL" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
-        </StackPanel>
-
-        <ItemsControl Grid.Column="1" ItemsSource="{Binding Pages}" HorizontalAlignment="Center" VerticalAlignment="Center">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Orientation="Horizontal" Spacing="8" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="vm:NavItem">
-              <Button Classes="AclNav" Classes.selected="{Binding IsSelected}" Content="{Binding Label}" Command="{Binding Select}" CommandParameter="{Binding}" />
+              <Button Classes="AclNavDark" Classes.selected="{Binding IsSelected}"
+                      Command="{Binding Select}" CommandParameter="{Binding}">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <TextBlock Text="{Binding Icon}" FontSize="13" />
+                  <TextBlock Text="{Binding Label}" />
+                </StackPanel>
+              </Button>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
@@ -116,14 +149,16 @@
         <Button Grid.Column="2" Classes="AclWindowButton" Content="✕" ToolTip.Tip="退出全屏（Esc）" Command="{Binding ToggleFullscreenCommand}" />
       </Grid>
 
-      <StackPanel Grid.Row="1" Spacing="18" VerticalAlignment="Center">
-        <Border Classes="AclCard" Padding="36">
+      <StackPanel Grid.Row="1" Spacing="16" VerticalAlignment="Center">
+        <Border Classes="AclDarkCard" Padding="34">
           <StackPanel Spacing="12">
-            <TextBlock Text="欢迎回到 ACL" FontSize="30" FontWeight="Bold" Foreground="{StaticResource AclTextBrush}" />
-            <TextBlock Text="完全自研的 Minecraft 启动器 · 内核与界面彻底解耦" FontSize="14" Foreground="{StaticResource AclMutedTextBrush}" />
-            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,10,0,0">
-              <Button Classes="AclPrimary" Padding="34,14" FontSize="15" Content="开始游戏" Command="{Binding ShowPageCommand}" CommandParameter="{Binding Pages[0]}" />
-              <Button Classes="AclPrimary" Padding="34,14" FontSize="15" Content="安装版本" Command="{Binding ShowPageCommand}" CommandParameter="{Binding Pages[1]}" />
+            <TextBlock Text="欢迎回到 ACL" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AclDarkTextBrush}" />
+            <TextBlock Text="完全自研的 Minecraft 启动器 · 内核与界面彻底解耦" FontSize="14" Foreground="{StaticResource AclDarkMutedBrush}" />
+            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+              <Button Classes="AclPrimary" Padding="34,14" FontSize="15" Content="开始游戏"
+                      Command="{Binding ShowPageCommand}" CommandParameter="{Binding Pages[0]}" />
+              <Button Classes="AclPrimary" Padding="34,14" FontSize="15" Content="安装版本"
+                      Command="{Binding ShowPageCommand}" CommandParameter="{Binding Pages[1]}" />
             </StackPanel>
           </StackPanel>
         </Border>
@@ -136,11 +171,12 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate DataType="vm:NavItem">
-              <Button Classes="AclNav" Padding="0" HorizontalContentAlignment="Stretch" Margin="8" Command="{Binding Select}" CommandParameter="{Binding}">
-                <Border Classes="AclCard" Padding="20" MinHeight="140">
+              <Button Classes="AclNavDark" Padding="0" Margin="8" HorizontalContentAlignment="Stretch"
+                      Command="{Binding Select}" CommandParameter="{Binding}">
+                <Border Classes="AclDarkCard hoverable" Padding="22" MinHeight="150">
                   <StackPanel Spacing="8">
-                    <TextBlock Text="{Binding Label}" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource AclTextBrush}" />
-                    <TextBlock Text="{Binding Page.Description}" FontSize="12" TextWrapping="Wrap" Foreground="{StaticResource AclMutedTextBrush}" />
+                    <TextBlock Text="{Binding Label}" FontSize="19" FontWeight="SemiBold" Foreground="{StaticResource AclDarkTextBrush}" />
+                    <TextBlock Text="{Binding Page.Description}" FontSize="12" TextWrapping="Wrap" Foreground="{StaticResource AclDarkMutedBrush}" />
                   </StackPanel>
                 </Border>
               </Button>
@@ -149,7 +185,8 @@
         </ItemsControl>
       </StackPanel>
 
-      <TextBlock Grid.Row="2" Text="按 Esc 退出全屏 · 按 F11 切换" Classes="AclCaption" HorizontalAlignment="Center" />
+      <TextBlock Grid.Row="2" Text="Esc 退出全屏 · F11 切换 · Ctrl+1..4 切换页面"
+                 Foreground="{StaticResource AclDarkMutedBrush}" FontSize="12" HorizontalAlignment="Center" />
     </Grid>
   </Panel>
 

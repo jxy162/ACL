@@ -23,8 +23,8 @@ public partial class DownloadPageViewModel : PageViewModelBase
         _state = state;
     }
 
-    /// <summary>版本列表。</summary>
-    public ObservableCollection<VersionRowViewModel> Versions { get; } = [];
+    /// <summary>版本列表（共享自 <see cref="AppState"/>）。</summary>
+    public ObservableCollection<VersionRowViewModel> Versions => _state.Versions;
 
     /// <summary>状态。</summary>
     [ObservableProperty]
@@ -50,20 +50,13 @@ public partial class DownloadPageViewModel : PageViewModelBase
         Status = "正在获取版本清单…";
         try
         {
-            Result<VersionManifest> manifest = await _services.Versions.GetManifestAsync().ConfigureAwait(true);
-            if (!manifest.IsSuccess)
+            string summary = await VersionLoader.LoadIntoAsync(_services, _state).ConfigureAwait(true);
+            foreach (VersionRowViewModel row in _state.Versions)
             {
-                Status = $"获取失败：{manifest.Code}（{manifest.Detail}）";
-                return;
+                row.Install = InstallCommand;
             }
 
-            Versions.Clear();
-            foreach (VersionEntry entry in manifest.Value!.Versions.Take(60))
-            {
-                Versions.Add(new VersionRowViewModel(entry.Id, entry.Type, entry.ReleaseTime) { Install = InstallCommand });
-            }
-
-            Status = $"共 {manifest.Value.Versions.Count} 个版本，已显示前 {Versions.Count} 个。";
+            Status = summary;
         }
         finally
         {

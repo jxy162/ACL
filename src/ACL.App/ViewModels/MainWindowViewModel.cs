@@ -32,10 +32,10 @@ public partial class MainWindowViewModel : ObservableObject
 
         Pages =
         [
-            new NavItem("launch", new LaunchPageViewModel(services, State)),
-            new NavItem("download", new DownloadPageViewModel(services, State)),
-            new NavItem("settings", new SettingsPageViewModel(services, State)),
-            new NavItem("more", new MorePageViewModel(services)),
+            new NavItem("launch", "▶", new LaunchPageViewModel(services, State)),
+            new NavItem("download", "⬇", new DownloadPageViewModel(services, State)),
+            new NavItem("settings", "⚙", new SettingsPageViewModel(services, State)),
+            new NavItem("more", "⋯", new MorePageViewModel(services)),
         ];
 
         foreach (NavItem page in Pages)
@@ -72,6 +72,22 @@ public partial class MainWindowViewModel : ObservableObject
 
     /// <summary>窗口标题。</summary>
     public string Title => "ACL";
+
+    /// <summary>版本清单状态。</summary>
+    [ObservableProperty]
+    private string _versionStatus = "尚未获取版本清单。";
+
+    /// <summary>刷新版本清单。</summary>
+    [RelayCommand]
+    private async Task RefreshVersionsAsync()
+    {
+        VersionStatus = "正在获取版本清单…";
+        VersionStatus = await VersionLoader.LoadIntoAsync(_services, State).ConfigureAwait(true);
+    }
+
+    /// <summary>离线登录（占据账号位）。</summary>
+    [RelayCommand]
+    private void LoginOffline() => State.AccountStatus = $"离线 · {State.PlayerName}";
 
     /// <summary>数据目录（关于信息）。</summary>
     public string DataDirectory => _services.DataDirectory;

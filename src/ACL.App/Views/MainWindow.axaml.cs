@@ -30,6 +30,16 @@ public partial class MainWindow : Window
             vm.ToggleFullscreenCommand.Execute(null);
             e.Handled = true;
         }
+        else if (e.KeyModifiers == KeyModifiers.Control && e.Key is >= Key.D1 and <= Key.D4)
+        {
+            int index = e.Key - Key.D1;
+            if (index < vm.Pages.Count)
+            {
+                vm.ShowPageCommand.Execute(vm.Pages[index]);
+            }
+
+            e.Handled = true;
+        }
         else if (e.Key == Key.Escape && vm.IsFullscreen)
         {
             vm.ToggleFullscreenCommand.Execute(null);

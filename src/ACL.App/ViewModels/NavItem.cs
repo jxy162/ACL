@@ -7,11 +7,15 @@ namespace ACL.App.ViewModels;
 public partial class NavItem : ObservableObject
 {
     /// <summary>构造导航项。</summary>
-    public NavItem(string key, PageViewModelBase page)
+    public NavItem(string key, string icon, PageViewModelBase page)
     {
         Key = key;
+        Icon = icon;
         Page = page;
     }
+
+    /// <summary>图标字符。</summary>
+    public string Icon { get; }
 
     /// <summary>标识。</summary>
     public string Key { get; }
