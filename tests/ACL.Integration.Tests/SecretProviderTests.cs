@@ -29,16 +29,6 @@ public class SecretProviderTests
     }
 
     [Fact]
-    public void PrefixedCompat_MapsAclToPcl()
-    {
-        PrefixedCompatSecretProvider provider = new(
-            new MapProvider(new() { ["PCL_MS_CLIENT_ID"] = "legacy-id" }));
-
-        Assert.Equal("legacy-id", provider.GetSecret("ACL_MS_CLIENT_ID"));
-        Assert.Null(provider.GetSecret("OTHER_KEY"));
-    }
-
-    [Fact]
     public void File_ReadsPortableSecrets()
     {
         InMemoryFileSystem fs = new();

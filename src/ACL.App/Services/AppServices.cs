@@ -115,11 +115,12 @@ public sealed class AppServices
         HttpTransport http = new();
         PhysicalFileSystem fileSystem = new();
 
-        // 密钥：便携文件 > ACL_* 环境变量 > 既有 PCL_* 环境变量（复用本机已设置的用户级变量）。
+        // 密钥来源（ACL 自有，不依赖第三方命名）：
+        //   1) 启动器目录下的便携文件 ACL.secrets.json
+        //   2) 环境变量 ACL_MS_CLIENT_ID / ACL_CURSEFORGE_API_KEY
         ISecretProvider secrets = new CompositeSecretProvider(
             new FileSecretProvider(fileSystem, Path.Combine(dataDirectory, "ACL.secrets.json")),
-            new EnvironmentSecretProvider(),
-            new PrefixedCompatSecretProvider(new EnvironmentSecretProvider()));
+            new EnvironmentSecretProvider());
 
         MirrorPolicy mirrorPolicy = new();
         DownloadService download = new(http, fileSystem, null, null, null, DownloadThrottle.Unlimited);

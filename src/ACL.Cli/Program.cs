@@ -32,8 +32,7 @@ JavaLocator javaLocator = new(fileSystem, javaProbe, javaRoots);
 
 ISecretProvider secrets = new CompositeSecretProvider(
     new FileSecretProvider(fileSystem, Path.Combine(AppContext.BaseDirectory, "ACL.secrets.json")),
-    new EnvironmentSecretProvider(),
-    new PrefixedCompatSecretProvider(new EnvironmentSecretProvider()));
+    new EnvironmentSecretProvider());
 AuthService authService = new(http, secrets);
 LaunchPlanner launchPlanner = new();
 NativesExtractor nativesExtractor = new(fileSystem);
