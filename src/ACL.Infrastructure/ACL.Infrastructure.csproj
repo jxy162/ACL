@@ -9,4 +9,8 @@
     <ProjectReference Include="..\ACL.Core.Domain\ACL.Core.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+  </ItemGroup>
+
 </Project>

@@ -235,6 +235,24 @@ public static class VersionJsonParser
                     entries.Add(new ArgumentEntry([item.GetString()!]));
                     break;
 
+                case JsonValueKind.Array:
+                    // 现代加载器 profile 会用嵌套数组表达"一次追加多个参数"。
+                    List<string> nested = [];
+                    foreach (JsonElement element in item.EnumerateArray())
+                    {
+                        if (element.ValueKind == JsonValueKind.String)
+                        {
+                            nested.Add(element.GetString()!);
+                        }
+                    }
+
+                    if (nested.Count > 0)
+                    {
+                        entries.Add(new ArgumentEntry(nested));
+                    }
+
+                    break;
+
                 case JsonValueKind.Object:
                     List<string> values = [];
                     if (item.TryGetProperty("value", out JsonElement value))

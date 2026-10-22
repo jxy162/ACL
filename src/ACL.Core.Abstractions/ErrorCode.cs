@@ -64,4 +64,7 @@ public enum ErrorCode
 
     /// <summary>未知错误。</summary>
     Unknown,
+
+    /// <summary>该操作 / 组件暂不支持。</summary>
+    Unsupported,
 }
