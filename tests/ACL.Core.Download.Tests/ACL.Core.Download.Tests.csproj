@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ACL.Core.Download\ACL.Core.Download.csproj" />
+    <ProjectReference Include="..\ACL.Testing\ACL.Testing.csproj" />
   </ItemGroup>
 
 </Project>
