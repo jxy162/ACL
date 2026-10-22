@@ -105,6 +105,10 @@ public partial class MainWindowViewModel : ObservableObject, ILauncherHost
 
         LoadSettings(services);
 
+        // 启动即扫描本机实例，保证"游戏列表 / 本机已安装"在首屏就是真实状态。
+        RefreshInstances();
+        ActivateCurrentPage();
+
         State.PlaytimeChanged += (_, _) => SaveSettingsOnExit();
         State.SettingsChanged += (_, _) => SaveSettingsOnExit();
         State.ToastRequested += (_, text) => ShowToast(text);
@@ -755,7 +759,9 @@ public partial class MainWindowViewModel : ObservableObject, ILauncherHost
         DownloadPage.ApplyFilter();
         DownloadPage.Status = VersionStatus;
         LaunchPage.ApplyFilter();
+        LaunchPage.Status = VersionStatus;
         DashboardPage.Refresh();
+        RefreshInstances();
         UpdateLeftPanels();
         ShowToast(VersionStatus);
     }
